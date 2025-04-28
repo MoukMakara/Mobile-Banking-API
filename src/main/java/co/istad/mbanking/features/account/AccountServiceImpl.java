@@ -4,9 +4,7 @@ import co.istad.mbanking.domain.Account;
 import co.istad.mbanking.domain.AccountType;
 import co.istad.mbanking.domain.User;
 import co.istad.mbanking.domain.UserAccount;
-import co.istad.mbanking.features.account.dto.AccountDetailResponse;
-import co.istad.mbanking.features.account.dto.CreateAccountRequest;
-import co.istad.mbanking.features.account.dto.UpdateAccountRequest;
+import co.istad.mbanking.features.account.dto.*;
 import co.istad.mbanking.features.user.UserRepository;
 import co.istad.mbanking.mapper.AccountMapper;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +28,19 @@ public class AccountServiceImpl implements AccountService {
     private final AccountTypeRepository accountTypeRepository;
     private final AccountMapper accountMapper;
 
+
+    @Override
+    public void updateTransferLimit(String actNo, AccountTransferLimitRequest accountTransferLimitRequest) {
+
+        // Validate account
+        Account account = accountRepository
+                .findByActNo(actNo)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Account has not been found"));
+
+        account.setTransferLimit(accountTransferLimitRequest.amount());
+        accountRepository.save(account);
+    }
 
     @Override
     public void enableAccount(String actNo) {
@@ -154,7 +165,6 @@ public class AccountServiceImpl implements AccountService {
 
         Account account = accountMapper.fromCreateAccountRequest(createAccountRequest);
         account.setTransferLimit(BigDecimal.valueOf(5000));
-        account.setAliasName("");
         account.setAccountType(accountType);
         account.setIsHidden(false);
         account.setIsDeleted(false);
@@ -167,6 +177,21 @@ public class AccountServiceImpl implements AccountService {
         userAccount.setIsBlocked(false);
 
         userAccountRepository.save(userAccount);
+    }
+
+    @Override
+    public AccountDetailResponse renameAccount(String actNo, AccountRenameRequest accountRenameRequest) {
+
+        // Validate account
+        Account account = accountRepository
+                .findByActNo(actNo)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Account has not been found"));
+
+        account.setAliasName(accountRenameRequest.aliasName());
+        account = accountRepository.save(account);
+
+        return accountMapper.toAccountDetailResponse(account);
     }
 
 }

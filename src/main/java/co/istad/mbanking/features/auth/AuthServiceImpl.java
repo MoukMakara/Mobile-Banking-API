@@ -226,6 +226,40 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
 
+    @Override
+    public void resendVerification(String email) throws MessagingException {
+        // Validate email
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "User has not been found"));
+
+        EmailVerification emailVerification = emailVerificationRepository
+                .findByUser(user)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "User has not been found"));
+        emailVerification.setVerificationCode(RandomUtil.random6Digits());
+        emailVerification.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+        emailVerificationRepository.save(emailVerification);
+
+        // Step 2. Prepare to send mail
+
+        String myHtml = String.format("""
+                <h1>MBanking - Email Verification</h1>
+                <hr/>
+                %s
+                """, emailVerification.getVerificationCode());
+
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
+        helper.setSubject("Email Verification - MBanking");
+        helper.setTo(user.getEmail());
+        helper.setFrom(adminMail);
+        helper.setText(myHtml, true);
+
+        javaMailSender.send(mimeMessage);
+    }
+
 
     @Override
     public void register(RegisterRequest registerRequest) throws MessagingException {

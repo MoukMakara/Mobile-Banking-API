@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
 public record CreateAccountRequest(
+        @NotBlank(message = "aliasName is required")
+        String aliasName,
         @NotBlank(message = "Account NO is required")
         @Size(message = "Account NO must be 9 digits", max = 9, min = 9)
         String actNo,

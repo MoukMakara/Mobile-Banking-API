@@ -4,10 +4,7 @@ import co.istad.mbanking.domain.Account;
 import co.istad.mbanking.features.account.dto.AccountDetailResponse;
 import co.istad.mbanking.features.account.dto.CreateAccountRequest;
 import co.istad.mbanking.features.account.dto.UpdateAccountRequest;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface AccountMapper {

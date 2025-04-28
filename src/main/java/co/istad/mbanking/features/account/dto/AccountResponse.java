@@ -1,13 +1,16 @@
 package co.istad.mbanking.features.account.dto;
 
+import lombok.Builder;
+
 import java.math.BigDecimal;
 
-public record AccountDetailResponse(
-        String aliasName,
+@Builder
+public record AccountResponse(
+        String alias,
+        String actName,
         String actNo,
         BigDecimal balance,
-        BigDecimal transferLimit,
-        Boolean isHidden,
+        Boolean isDeleted,
         AccountTypeResponse accountType
 ) {
 }

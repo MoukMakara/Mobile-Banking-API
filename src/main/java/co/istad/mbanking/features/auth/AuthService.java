@@ -11,6 +11,8 @@ public interface AuthService {
 
     void verify(VerifyRequest verifyRequest);
 
+    void resendVerification(String email) throws MessagingException;
+
     void register(RegisterRequest registerRequest) throws MessagingException;
 
 }

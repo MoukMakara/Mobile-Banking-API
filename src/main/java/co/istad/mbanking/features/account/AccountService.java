@@ -1,11 +1,10 @@
 package co.istad.mbanking.features.account;
 
-import co.istad.mbanking.features.account.dto.AccountDetailResponse;
-import co.istad.mbanking.features.account.dto.CreateAccountRequest;
-import co.istad.mbanking.features.account.dto.UpdateAccountRequest;
+import co.istad.mbanking.features.account.dto.*;
 import org.springframework.data.domain.Page;
 
 public interface AccountService {
+    void updateTransferLimit(String actNo, AccountTransferLimitRequest accountTransferLimitRequest);
 
     void enableAccount(String actNo);
 
@@ -20,4 +19,7 @@ public interface AccountService {
     AccountDetailResponse findByActNo(String actNo);
 
     void createNew(CreateAccountRequest createAccountRequest);
+
+    AccountDetailResponse renameAccount(String actNo, AccountRenameRequest accountRenameRequest);
+
 }

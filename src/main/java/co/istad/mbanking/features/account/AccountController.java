@@ -1,8 +1,6 @@
 package co.istad.mbanking.features.account;
 
-import co.istad.mbanking.features.account.dto.AccountDetailResponse;
-import co.istad.mbanking.features.account.dto.CreateAccountRequest;
-import co.istad.mbanking.features.account.dto.UpdateAccountRequest;
+import co.istad.mbanking.features.account.dto.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -20,9 +18,17 @@ public class AccountController {
 
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PutMapping("/{actNo}/transfer-limit")
+    void updateTransferLimit(@PathVariable("actNo") String actNo,
+                             @Valid @RequestBody AccountTransferLimitRequest accountTransferLimitRequest) {
+        accountService.updateTransferLimit(actNo, accountTransferLimitRequest);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PutMapping("/{actNo}/enable")
     void enableByActNo(@PathVariable String actNo) {
-        accountService.disableAccount(actNo);
+        accountService.enableAccount(actNo);
     }
 
 
@@ -70,6 +76,12 @@ public class AccountController {
     @PostMapping
     void createNew(@Valid @RequestBody CreateAccountRequest createAccountRequest) {
         accountService.createNew(createAccountRequest);
+    }
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PutMapping("/{actNo}/rename")
+    AccountDetailResponse renameAccount(@PathVariable("actNo") String actNo,
+                                  @Valid @RequestBody AccountRenameRequest accountRenameRequest) {
+        return accountService.renameAccount(actNo, accountRenameRequest);
     }
 
 }

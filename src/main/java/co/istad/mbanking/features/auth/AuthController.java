@@ -33,6 +33,12 @@ public class AuthController {
         authService.verify(verifyRequest);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping("/resend-verify")
+    void resendVerification(@Valid @RequestBody ReVerifyRequest reVerifyRequest) throws MessagingException {
+        authService.resendVerification(reVerifyRequest.email());
+    }
+
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/register")
