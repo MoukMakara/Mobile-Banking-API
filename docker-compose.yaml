@@ -1,0 +1,19 @@
+#docker-compose.yaml
+version: "3.9"
+
+volumes:
+  vol-sbc11:
+
+services:
+  sbc11-postgres:
+    image: "postgres:16.4-bullseye"
+    container_name: "sbc11-postgres"
+    ports:
+      - "5555:5432"
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: Admin
+      POSTGRES_USER: postgres
+      POSTGRES_DB: mobile_banking_db
+    volumes:
+      - "vol-sbc11:/var/lib/postgresql/data"
