@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping("/api/v1/accounts")
 @RequiredArgsConstructor
@@ -68,6 +70,22 @@ public class AccountController {
     @GetMapping("/{actNo}")
     AccountDetailResponse findByActNo(@PathVariable String actNo) {
         return accountService.findByActNo(actNo);
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/{actNo}/deposit")
+    AccountDetailResponse deposit(@PathVariable String actNo,
+                                        @RequestBody @Valid DepositRequest depositRequest) {
+        return accountService.deposit(actNo, depositRequest);
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/{actNo}/withdraw")
+    AccountDetailResponse withdraw(@PathVariable String actNo,
+                                        @RequestBody @Valid WithdrawRequest withdrawRequest) {
+        return accountService.withdraw(actNo, withdrawRequest);
     }
 
 
