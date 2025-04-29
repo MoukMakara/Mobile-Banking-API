@@ -30,7 +30,7 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
-    public void updateTransferLimit(String actNo, AccountTransferLimitRequest accountTransferLimitRequest) {
+    public AccountDetailResponse updateTransferLimit(String actNo, AccountTransferLimitRequest accountTransferLimitRequest) {
 
         // Validate account
         Account account = accountRepository
@@ -40,10 +40,14 @@ public class AccountServiceImpl implements AccountService {
 
         account.setTransferLimit(accountTransferLimitRequest.amount());
         accountRepository.save(account);
+
+        return accountMapper.toAccountDetailResponse(account);
+//        return accountMapper.toAccountDetailResponse(accountRepository.save(account));
+
     }
 
     @Override
-    public void enableAccount(String actNo) {
+    public AccountDetailResponse enableAccount(String actNo) {
 
         Account account = accountRepository
                 .findByActNo(actNo)
@@ -54,11 +58,12 @@ public class AccountServiceImpl implements AccountService {
 
         account.setIsDeleted(false);
         accountRepository.save(account);
+        return accountMapper.toAccountDetailResponse(account);
     }
 
 
     @Override
-    public void disableAccount(String actNo) {
+    public AccountDetailResponse disableAccount(String actNo) {
 
         Account account = accountRepository
                 .findByActNo(actNo)
@@ -69,10 +74,12 @@ public class AccountServiceImpl implements AccountService {
 
         account.setIsDeleted(true);
         accountRepository.save(account);
+
+        return accountMapper.toAccountDetailResponse(account);
     }
 
     @Override
-    public void deleteByActNo(String actNo) {
+    public AccountDetailResponse deleteByActNo(String actNo) {
 
         Account account = accountRepository
                 .findByActNo(actNo)
@@ -82,6 +89,8 @@ public class AccountServiceImpl implements AccountService {
                 ));
 
         accountRepository.delete(account);
+
+        return accountMapper.toAccountDetailResponse(account);
     }
 
 
@@ -176,7 +185,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void createNew(CreateAccountRequest createAccountRequest) {
+    public AccountDetailResponse createNew(CreateAccountRequest createAccountRequest) {
 
         // Validate account type
         AccountType accountType = accountTypeRepository
@@ -213,6 +222,8 @@ public class AccountServiceImpl implements AccountService {
         userAccount.setIsBlocked(false);
 
         userAccountRepository.save(userAccount);
+
+        return accountMapper.toAccountDetailResponse(accountRepository.save(account));
     }
 
     @Override

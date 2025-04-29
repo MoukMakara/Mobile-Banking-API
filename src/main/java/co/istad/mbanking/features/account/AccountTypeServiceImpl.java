@@ -40,7 +40,7 @@ public class AccountTypeServiceImpl implements AccountTypeService {
 
     }
     @Override
-    public void createNew(AccountTypeRequest accountTypeRequest) {
+    public AccountTypeResponse createNew(AccountTypeRequest accountTypeRequest) {
 
         // Validate alias
         if (accountTypeRepository.existsByAlias(accountTypeRequest.alias())) {
@@ -52,6 +52,8 @@ public class AccountTypeServiceImpl implements AccountTypeService {
         accountType.setIsDeleted(false);
 
         accountTypeRepository.save(accountType);
+
+        return accountTypeMapper.toAccountTypeResponse(accountType);
     }
 
     @Override
@@ -73,7 +75,7 @@ public class AccountTypeServiceImpl implements AccountTypeService {
     }
 
     @Override
-    public void deleteByAlias(String alias) {
+    public AccountTypeResponse deleteByAlias(String alias) {
 
         // Validate alias
         AccountType accountType = accountTypeRepository
@@ -82,6 +84,8 @@ public class AccountTypeServiceImpl implements AccountTypeService {
                         "Account type alias has not been found"));
 
         accountTypeRepository.delete(accountType);
+
+        return accountTypeMapper.toAccountTypeResponse(accountType);
     }
 
 }

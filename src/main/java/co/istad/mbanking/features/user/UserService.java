@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 
 public interface UserService {
 
-    void register(CreateUserRequest createUserRequest);
+    UserResponse register(CreateUserRequest createUserRequest);
 
     UserResponse updateByUuid(String uuid, UserUpdateRequest userUpdateRequest);
 

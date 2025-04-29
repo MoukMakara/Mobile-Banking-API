@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     private String fileServerBaseUri;
 
     @Override
-    public void register(CreateUserRequest createUserRequest) {
+    public UserResponse register(CreateUserRequest createUserRequest) {
 
         // Validate national Card ID
         if (userRepository.isNationalCardIdExisted(createUserRequest.nationalCardId())) {
@@ -81,6 +81,8 @@ public class UserServiceImpl implements UserService {
         user.setRoles(roles);
 
         userRepository.save(user);
+
+        return userMapper.toUserResponse(user);
     }
 
     @Override

@@ -12,11 +12,11 @@ public interface AccountTypeService {
 
     AccountTypeResponse findByAlias(String alias);
 
-    void createNew(AccountTypeRequest accountTypeRequest);
+    AccountTypeResponse createNew(AccountTypeRequest accountTypeRequest);
 
     AccountTypeResponse updateByAlias(String alias, AccountTypeUpdateRequest accountTypeUpdateRequest);
 
-    void deleteByAlias(String alias);
+    AccountTypeResponse deleteByAlias(String alias);
 
 
 }

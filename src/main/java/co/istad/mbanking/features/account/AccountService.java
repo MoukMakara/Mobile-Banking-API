@@ -6,13 +6,13 @@ import org.springframework.data.domain.Page;
 import java.math.BigDecimal;
 
 public interface AccountService {
-    void updateTransferLimit(String actNo, AccountTransferLimitRequest accountTransferLimitRequest);
+    AccountDetailResponse updateTransferLimit(String actNo, AccountTransferLimitRequest accountTransferLimitRequest);
 
-    void enableAccount(String actNo);
+    AccountDetailResponse enableAccount(String actNo);
 
-    void disableAccount(String actNo);
+    AccountDetailResponse disableAccount(String actNo);
 
-    void deleteByActNo(String actNo);
+    AccountDetailResponse deleteByActNo(String actNo);
 
     Page<AccountDetailResponse> findAll(int pageNo, int pageSize);
 
@@ -24,7 +24,7 @@ public interface AccountService {
 
     AccountDetailResponse withdraw(String actNo, WithdrawRequest withdrawRequest);
 
-    void createNew(CreateAccountRequest createAccountRequest);
+    AccountDetailResponse createNew(CreateAccountRequest createAccountRequest);
 
     AccountDetailResponse renameAccount(String actNo, AccountRenameRequest accountRenameRequest);
 
