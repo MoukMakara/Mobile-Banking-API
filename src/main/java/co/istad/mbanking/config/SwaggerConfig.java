@@ -60,7 +60,7 @@ public class SwaggerConfig {
                         .version("1.0")
                         .contact(new Contact()
                                 .name("Mouk Makara")
-                                .email("genmkr@gmail.com")
+                                .email("genmkr944@gmail.com")
                                 .url("www.istad.co")
                         )
                         .license(new License().name("License of API")

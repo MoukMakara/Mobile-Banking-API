@@ -85,6 +85,7 @@ public class SecurityConfig {
                         "/swagger-ui/**",
                         "/swagger-ui.html")
                 .permitAll()
+                .requestMatchers(HttpMethod.GET, "api/v1/files/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/card-types").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/account-types").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users").hasRole("MANAGER")
