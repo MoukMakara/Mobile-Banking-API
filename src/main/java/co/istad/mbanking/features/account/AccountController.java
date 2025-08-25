@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/accounts")
 @RequiredArgsConstructor
@@ -83,7 +85,7 @@ public class AccountController {
     }
 
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_ADMIN')")
     @GetMapping
     public ResponseEntity<ApiResponse<Page<AccountDetailResponse>>> findAll(@RequestParam(required = false, defaultValue = "1") int pageNo,
                                                                             @RequestParam(required = false, defaultValue = "25") int pageSize) {
@@ -100,8 +102,7 @@ public class AccountController {
     }
 
 
-
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_MANAGER', 'ROLE_ADMIN')")
     @PatchMapping("/{actNo}")
     public ResponseEntity<ApiResponse<AccountDetailResponse>> updateByActNo(@PathVariable String actNo,
                                                                             @RequestBody @Valid UpdateAccountRequest updateAccountRequest) {
@@ -117,7 +118,7 @@ public class AccountController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_MANAGER', 'ROLE_ADMIN')")
     @GetMapping("/{actNo}")
     public ResponseEntity<ApiResponse<AccountDetailResponse>> findByActNo(@PathVariable String actNo) {
         AccountDetailResponse response = accountService.findByActNo(actNo);
@@ -132,7 +133,7 @@ public class AccountController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_MANAGER', 'ROLE_ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/{actNo}/deposit")
     public ResponseEntity<ApiResponse<AccountDetailResponse>> deposit(@PathVariable String actNo,
@@ -149,7 +150,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_MANAGER', 'ROLE_ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/{actNo}/withdraw")
     public ResponseEntity<ApiResponse<AccountDetailResponse>> withdraw(@PathVariable String actNo,
@@ -166,7 +167,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_MANAGER', 'ROLE_ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ResponseEntity<ApiResponse<AccountDetailResponse>> createNew(@Valid @RequestBody CreateAccountRequest createAccountRequest) {
@@ -182,7 +183,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_MANAGER', 'ROLE_ADMIN')")
     @PutMapping("/{actNo}/rename")
     public ResponseEntity<ApiResponse<AccountDetailResponse>> renameAccount(@PathVariable("actNo") String actNo,
                                                                             @Valid @RequestBody AccountRenameRequest accountRenameRequest) {
@@ -198,5 +199,19 @@ public class AccountController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    // New endpoint for getting current user's accounts
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/current-accounts")
+    public ResponseEntity<ApiResponse<List<AccountDetailResponse>>> getCurrentUserAccounts() {
+        List<AccountDetailResponse> response = accountService.findCurrentUserAccounts();
 
+        ApiResponse<List<AccountDetailResponse>> apiResponse = ApiResponse.<List<AccountDetailResponse>>builder()
+                .success(true)
+                .message("Current user accounts retrieved successfully")
+                .status(HttpStatus.OK)
+                .payload(response)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
 }

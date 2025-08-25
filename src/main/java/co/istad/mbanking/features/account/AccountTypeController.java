@@ -4,6 +4,7 @@ import co.istad.mbanking.exception.ApiResponse;
 import co.istad.mbanking.features.account.dto.AccountTypeRequest;
 import co.istad.mbanking.features.account.dto.AccountTypeResponse;
 import co.istad.mbanking.features.account.dto.AccountTypeUpdateRequest;
+import co.istad.mbanking.security.CurrentUserUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,9 @@ import java.util.List;
 public class AccountTypeController {
 
     private final AccountTypeService accountTypeService;
+    private final CurrentUserUtil currentUserUtil;
 
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_MANAGER', 'ROLE_ADMIN')")
     @GetMapping("/{alias}")
     public ResponseEntity<ApiResponse<AccountTypeResponse>> findByAlias(@PathVariable String alias) {
         AccountTypeResponse response = accountTypeService.findByAlias(alias);
@@ -34,7 +37,7 @@ public class AccountTypeController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_MANAGER', 'ROLE_ADMIN')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<AccountTypeResponse>>> findAll() {
         List<AccountTypeResponse> response = accountTypeService.findAll();
@@ -99,4 +102,19 @@ public class AccountTypeController {
     }
 
 
+    // New endpoint for getting account types for current user
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<AccountTypeResponse>>> getAccountTypesForCurrentUser() {
+        List<AccountTypeResponse> response = accountTypeService.findAll();
+
+        ApiResponse<List<AccountTypeResponse>> apiResponse = ApiResponse.<List<AccountTypeResponse>>builder()
+                .success(true)
+                .message("Current user account types retrieved successfully")
+                .status(HttpStatus.OK)
+                .payload(response)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
 }

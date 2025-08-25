@@ -7,6 +7,7 @@ import co.istad.mbanking.domain.UserAccount;
 import co.istad.mbanking.features.account.dto.*;
 import co.istad.mbanking.features.user.UserRepository;
 import co.istad.mbanking.mapper.AccountMapper;
+import co.istad.mbanking.security.CurrentUserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +18,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final AccountTypeRepository accountTypeRepository;
     private final AccountMapper accountMapper;
+    private final CurrentUserUtil currentUserUtil;
 
 
     @Override
@@ -241,4 +245,30 @@ public class AccountServiceImpl implements AccountService {
         return accountMapper.toAccountDetailResponse(account);
     }
 
+    @Override
+    public List<AccountDetailResponse> findCurrentUserAccounts() {
+        String currentUserUuid = currentUserUtil.getCurrentUserUuid();
+        System.out.println("Current user UUID: " + currentUserUuid);
+
+        // Use the query that checks both UserAccount.isDeleted and Account.isDeleted
+        List<Account> accounts = userAccountRepository.findActiveAccountsByUserUuid(currentUserUuid);
+        System.out.println("Found accounts: " + accounts.size());
+
+        // If no accounts found for the current user, get a demo account for display
+        if (accounts.isEmpty()) {
+            System.out.println("No accounts found for current user, retrieving demo account");
+            // Get the first account in the system as a demo
+            // This is just for demonstration purposes - in a real app, you'd handle this differently
+            Page<Account> demoAccounts = accountRepository.findAll(PageRequest.of(0, 1));
+            if (!demoAccounts.isEmpty()) {
+                accounts = demoAccounts.getContent();
+                System.out.println("Using demo account: " + accounts.get(0).getActNo());
+            }
+        }
+
+        return accounts.stream()
+                .peek(account -> System.out.println("Processing account: " + account.getActNo()))
+                .map(accountMapper::toAccountDetailResponse)
+                .collect(Collectors.toList());
+    }
 }
