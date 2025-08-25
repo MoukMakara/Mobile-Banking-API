@@ -6,6 +6,7 @@ import co.istad.mbanking.features.auth.dto.ResetPasswordRequest;
 import co.istad.mbanking.features.user.dto.CreateUserRequest;
 import co.istad.mbanking.features.user.dto.UserResponse;
 import co.istad.mbanking.features.user.dto.UserUpdateRequest;
+import co.istad.mbanking.security.CurrentUserUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final CurrentUserUtil currentUserUtil;
 
     @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_STAFF')")
     @PostMapping
@@ -37,8 +39,8 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    // UPDATE by UUID
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_STAFF', 'ROLE_CUSTOMER', 'USER')")
+    // UPDATE by UUID - Allow users to update their own profile or managers/staff to update any profile
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_STAFF') || (hasAnyAuthority('ROLE_CUSTOMER', 'USER') && @currentUserUtil.isResourceOwner(#uuid))")
     @PutMapping("/{uuid}")
     public ResponseEntity<ApiResponse<UserResponse>> updateByUuid(@PathVariable String uuid,
                                                                   @Valid @RequestBody UserUpdateRequest userUpdateRequest) {
@@ -66,8 +68,8 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    // FIND BY UUID
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_STAFF')")
+    // FIND BY UUID - Allow users to get their own profile or managers/staff to get any profile
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_STAFF') || (hasAnyAuthority('ROLE_CUSTOMER', 'USER') && @currentUserUtil.isResourceOwner(#uuid))")
     @GetMapping("/{uuid}")
     public ResponseEntity<ApiResponse<UserResponse>> findByUuid(@PathVariable String uuid) {
         UserResponse userResponse = userService.findByUuid(uuid);
@@ -108,8 +110,8 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
     }
 
-    // UPDATE PROFILE IMAGE
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_STAFF')")
+    // UPDATE PROFILE IMAGE - Allow users to update their own profile image or managers/staff to update any profile image
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_STAFF') || (hasAnyAuthority('ROLE_CUSTOMER', 'USER') && @currentUserUtil.isResourceOwner(#uuid))")
     @PutMapping("/{uuid}/profile-image")
     public ResponseEntity<ApiResponse<String>> updateProfileImage(@PathVariable String uuid,
                                                                   @RequestParam("mediaName") String mediaName) {
@@ -138,8 +140,8 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    // CHANGE PASSWORD
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_STAFF', 'ROLE_CUSTOMER', 'USER')")
+    // CHANGE PASSWORD - Allow users to change their own password or managers/staff to change any password
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_STAFF') || (hasAnyAuthority('ROLE_CUSTOMER', 'USER') && @currentUserUtil.isResourceOwner(#uuid))")
     @PutMapping("/{uuid}/change-password")
     public ResponseEntity<ApiResponse<?>> changePassword(@PathVariable String uuid,
                                                          @Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
@@ -149,6 +151,22 @@ public class UserController {
                 .message("Password changed successfully")
                 .status(HttpStatus.OK)
                 .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    // GET CURRENT USER PROFILE
+    @GetMapping("/current-user")
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUserProfile() {
+        String currentUserUuid = currentUserUtil.getCurrentUserUuid();
+        UserResponse userResponse = userService.findByUuid(currentUserUuid);
+
+        ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
+                .success(true)
+                .message("Current user profile retrieved successfully")
+                .status(HttpStatus.OK)
+                .payload(userResponse)
+                .build();
+
         return ResponseEntity.ok(apiResponse);
     }
 
@@ -165,5 +183,4 @@ public class UserController {
 
         return ResponseEntity.ok(apiResponse);
     }
-
 }
