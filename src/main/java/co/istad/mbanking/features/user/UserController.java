@@ -121,4 +121,19 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    // UPDATE ROLE BY UUID
+    @PreAuthorize("hasAuthority('ROLE_MANAGER')")
+    @PutMapping("/{uuid}/role")
+    public ResponseEntity<ApiResponse<UserResponse>> updateRoleByUuid(@PathVariable String uuid,
+                                                                     @RequestParam String roleName) {
+        UserResponse userResponse = userService.updateRoleByUuid(uuid, roleName);
+        ApiResponse<UserResponse> apiResponse = ApiResponse.<UserResponse>builder()
+                .success(true)
+                .message("User role updated successfully")
+                .status(HttpStatus.OK)
+                .payload(userResponse)
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
 }

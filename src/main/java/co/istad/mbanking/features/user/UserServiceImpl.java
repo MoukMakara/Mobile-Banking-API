@@ -158,4 +158,34 @@ public class UserServiceImpl implements UserService {
         return fileServerBaseUri + user.getProfileImage();
     }
 
+    @Override
+    public UserResponse updateRoleByUuid(String uuid, String roleName) {
+        // Find user by UUID
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "User has not been found!"));
+
+        // Find role by name
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Role has not been found!"));
+
+        // Check if user already has this role
+        boolean hasRole = user.getRoles().stream()
+                .anyMatch(r -> r.getName().equals(roleName));
+
+        if (hasRole) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "User already has role: " + roleName);
+        }
+
+        // Add the role to user's roles
+        user.getRoles().add(role);
+        userRepository.save(user);
+
+        return userMapper.toUserResponse(user);
+    }
+
 }

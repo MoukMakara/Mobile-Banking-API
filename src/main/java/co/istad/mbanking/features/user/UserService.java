@@ -15,8 +15,7 @@ public interface UserService {
 
     UserResponse findByUuid(String uuid);
 
-    // update role
-//    UserResponse updateRoleByUuid(String uuid, String roleName);
+    UserResponse updateRoleByUuid(String uuid, String roleName);
 
     void setBlockAndUnBlockByUuid(String uuid, boolean status);
 
