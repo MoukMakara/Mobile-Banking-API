@@ -127,13 +127,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void blockByUuid(String uuid) {
-
+    public void setBlockAndUnBlockByUuid(String uuid, boolean status) {
         User user = userRepository.findByUuid(uuid)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "User has not been found!"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User has not been found!"));
 
-        user.setIsBlocked(true);
+        user.setIsBlocked(status);
         userRepository.save(user);
     }
 

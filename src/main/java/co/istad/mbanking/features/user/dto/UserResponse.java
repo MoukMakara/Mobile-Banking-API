@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record UserResponse(
+        String uuid,
         String name,
         String gender,
         LocalDate dob,

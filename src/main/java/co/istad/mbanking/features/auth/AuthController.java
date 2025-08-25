@@ -3,6 +3,7 @@ package co.istad.mbanking.features.auth;
 import co.istad.mbanking.exception.ApiResponse;
 import co.istad.mbanking.features.auth.dto.*;
 import co.istad.mbanking.features.user.dto.CreateUserRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Tag(name = "auth-controller")
 public class AuthController {
 
     private final AuthService authService;

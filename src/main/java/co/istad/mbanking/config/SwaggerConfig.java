@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +35,6 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI openAPI() {
-
         Server devServer = new Server();
         devServer.setUrl(devUrl);
         devServer.setDescription("Server URL in Development environment");
@@ -46,7 +46,6 @@ public class SwaggerConfig {
         Server prodServer = new Server();
         prodServer.setUrl(prodUrl);
         prodServer.setDescription("Server URL in Production environment");
-
 
         return new OpenAPI()
                 .addSecurityItem(new SecurityRequirement()
@@ -67,7 +66,16 @@ public class SwaggerConfig {
                                 .url("API license URL")
                         )
                 )
-                .servers(List.of(devServer, stageServer, prodServer));
-    }
+                .servers(List.of(devServer, stageServer, prodServer))
+                // Add tags in the order you want them to appear
+                .tags(List.of(
+                        new Tag().name("auth-controller").description("Authentication operations"),
 
+                        new Tag().name("transaction-controller").description("Transaction operations"),
+                        new Tag().name("account-controller").description("Account operations"),
+                        new Tag().name("user-controller").description("User management operations"),
+                        new Tag().name("file-controller").description("File operations"),
+                        new Tag().name("account-type-controller").description("Account type operations")
+                ));
+    }
 }

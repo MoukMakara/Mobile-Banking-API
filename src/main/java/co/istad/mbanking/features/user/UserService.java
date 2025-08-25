@@ -15,11 +15,12 @@ public interface UserService {
 
     UserResponse findByUuid(String uuid);
 
-    void blockByUuid(String uuid);
+    // update role
+//    UserResponse updateRoleByUuid(String uuid, String roleName);
+
+    void setBlockAndUnBlockByUuid(String uuid, boolean status);
 
     void deleteByUuid(String uuid);
 
     String updateProfileImage(String uuid, String mediaName);
-
-
 }
