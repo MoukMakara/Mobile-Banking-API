@@ -1,6 +1,7 @@
 package co.istad.mbanking.features.file;
 
 import co.istad.mbanking.features.file.dto.FileResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -11,5 +12,7 @@ public interface FileService {
     List<FileResponse> uploadMultiple(List<MultipartFile> files) throws IOException;
 
     FileResponse upload(MultipartFile file) throws IOException;
+
+    ResponseEntity<?> previewImage(String filename) throws IOException;
 
 }

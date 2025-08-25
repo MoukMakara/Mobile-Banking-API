@@ -2,6 +2,7 @@ package co.istad.mbanking.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
@@ -9,9 +10,11 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.HandlerMethod;
 
 import java.util.List;
 
@@ -31,6 +34,21 @@ public class SwaggerConfig {
         return new SecurityScheme().type(SecurityScheme.Type.HTTP)
                 .bearerFormat("JWT")
                 .scheme("bearer");
+    }
+
+    /**
+     * Customizes Swagger operations by removing security requirements for file controller endpoints
+     * @return OperationCustomizer to remove lock icons for file-related endpoints
+     */
+    @Bean
+    public OperationCustomizer customizeFileOperations() {
+        return (Operation operation, HandlerMethod handlerMethod) -> {
+            // Remove security requirements for file controller operations
+            if (handlerMethod.getBeanType().getName().contains("FileController")) {
+                operation.setSecurity(List.of());  // Empty security requirements list
+            }
+            return operation;
+        };
     }
 
     @Bean
