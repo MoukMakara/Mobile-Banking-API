@@ -1,5 +1,7 @@
 package co.istad.mbanking.features.user;
 
+import co.istad.mbanking.features.auth.dto.ChangePasswordRequest;
+import co.istad.mbanking.features.auth.dto.ResetPasswordRequest;
 import co.istad.mbanking.features.user.dto.CreateUserRequest;
 import co.istad.mbanking.features.user.dto.UserResponse;
 import co.istad.mbanking.features.user.dto.UserUpdateRequest;
@@ -22,4 +24,9 @@ public interface UserService {
     void deleteByUuid(String uuid);
 
     String updateProfileImage(String uuid, String mediaName);
+
+    void changePassword(String uuid, ChangePasswordRequest changePasswordRequest);
+
+    void resetPassword(ResetPasswordRequest resetPasswordRequest);
+
 }

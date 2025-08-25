@@ -1,6 +1,8 @@
 package co.istad.mbanking.features.user;
 
 import co.istad.mbanking.exception.ApiResponse;
+import co.istad.mbanking.features.auth.dto.ChangePasswordRequest;
+import co.istad.mbanking.features.auth.dto.ResetPasswordRequest;
 import co.istad.mbanking.features.user.dto.CreateUserRequest;
 import co.istad.mbanking.features.user.dto.UserResponse;
 import co.istad.mbanking.features.user.dto.UserUpdateRequest;
@@ -133,6 +135,34 @@ public class UserController {
                 .status(HttpStatus.OK)
                 .payload(userResponse)
                 .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    // CHANGE PASSWORD
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER', 'ROLE_STAFF', 'ROLE_CUSTOMER', 'USER')")
+    @PutMapping("/{uuid}/change-password")
+    public ResponseEntity<ApiResponse<?>> changePassword(@PathVariable String uuid,
+                                                         @Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
+        userService.changePassword(uuid, changePasswordRequest);
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .message("Password changed successfully")
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    // RESET PASSWORD
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<?>> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
+        userService.resetPassword(resetPasswordRequest);
+
+        ApiResponse<?> apiResponse = ApiResponse.builder()
+                .success(true)
+                .message("Temporary password sent to your email. Please check your inbox.")
+                .status(HttpStatus.OK)
+                .build();
+
         return ResponseEntity.ok(apiResponse);
     }
 

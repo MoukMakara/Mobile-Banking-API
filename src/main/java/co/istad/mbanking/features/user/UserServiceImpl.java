@@ -3,6 +3,8 @@ package co.istad.mbanking.features.user;
 import co.istad.mbanking.domain.Role;
 import co.istad.mbanking.domain.User;
 import co.istad.mbanking.features.auth.RoleRepository;
+import co.istad.mbanking.features.auth.dto.ChangePasswordRequest;
+import co.istad.mbanking.features.auth.dto.ResetPasswordRequest;
 import co.istad.mbanking.features.user.dto.CreateUserRequest;
 import co.istad.mbanking.features.user.dto.UserResponse;
 import co.istad.mbanking.features.user.dto.UserUpdateRequest;
@@ -13,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,9 +35,13 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JavaMailSender mailSender;
 
     @Value("${file-server.base-uri}")
     private String fileServerBaseUri;
+
+    @Value("${spring.mail.username}")
+    private String mailUsername;
 
     @Override
     public UserResponse register(CreateUserRequest createUserRequest) {
@@ -188,4 +196,78 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserResponse(user);
     }
 
+    @Override
+    public void changePassword(String uuid, ChangePasswordRequest changePasswordRequest) {
+
+        // Find user by UUID
+        User user = userRepository.findByUuid(uuid)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User has not been found!"
+                ));
+
+        // Check if old password matches
+        if (!passwordEncoder.matches(changePasswordRequest.oldPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Old password is incorrect");
+        }
+
+        // Validate new password and confirmed password match
+        if (!changePasswordRequest.password().equals(changePasswordRequest.confirmedPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Passwords do not match");
+        }
+
+        // Update the password securely
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.password()));
+        userRepository.save(user);
+
+        log.info("Password changed successfully for user: {}", user.getEmail());
+    }
+
+    /**
+     * Reset Password API
+     */
+    @Override
+    public void resetPassword(ResetPasswordRequest resetPasswordRequest) {
+
+        // Find user by email
+        User user = userRepository.findByEmail(resetPasswordRequest.email())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "User with this email has not been found!"
+                ));
+
+        // Generate a secure temporary password
+        String temporaryPassword = UUID.randomUUID()
+                .toString()
+                .replace("-", "")
+                .substring(0, 10);
+
+        // Update user's password
+        user.setPassword(passwordEncoder.encode(temporaryPassword));
+        userRepository.save(user);
+
+        // Send email with the temporary password
+        try {
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setTo(user.getEmail());
+            mailMessage.setFrom(mailUsername);
+            mailMessage.setSubject("Your Password Reset Request");
+            mailMessage.setText(
+                    "Hello " + user.getName() + ",\n\n" +
+                            "We received a request to reset your password.\n" +
+                            "Here is your temporary password: " + temporaryPassword + "\n\n" +
+                            "⚠ Please log in and change your password immediately for security.\n\n" +
+                            "Thank you,\nBanking API Team"
+            );
+
+            mailSender.send(mailMessage);
+
+            log.info("Temporary password sent successfully to: {}", user.getEmail());
+
+        } catch (Exception e) {
+            log.error("Failed to send email: {}", e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to send temporary password. Please try again.");
+        }
+    }
 }
