@@ -151,42 +151,42 @@ public class AccountServiceImpl implements AccountService {
         return accountMapper.toAccountDetailResponse(account);
     }
 
-    @Override
-    public AccountDetailResponse deposit(String actNo, DepositRequest depositRequest) {
-        Account account = accountRepository
-                .findByActNo(actNo)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Account doesn't exist"
-                ));
-
-        BigDecimal total = account.getBalance().add(depositRequest.amount());
-
-        account.setBalance(total);
-        Account savedAccount = accountRepository.save(account);
-
-        return accountMapper.toAccountDetailResponse(savedAccount);
-    }
-
-    @Override
-    public AccountDetailResponse withdraw(String actNo, WithdrawRequest withdrawRequest) {
-        Account account = accountRepository
-                .findByActNo(actNo)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Account doesn't exist"
-                ));
-        if (account.getBalance().compareTo(withdrawRequest.amount()) < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Insufficient balance");
-        }else {
-            BigDecimal total = account.getBalance().subtract(withdrawRequest.amount());
-            account.setBalance(total);
-            Account savedAccount = accountRepository.save(account);
-
-            return accountMapper.toAccountDetailResponse(savedAccount);
-        }
-    }
+//    @Override
+//    public AccountDetailResponse deposit(String actNo, DepositRequest depositRequest) {
+//        Account account = accountRepository
+//                .findByActNo(actNo)
+//                .orElseThrow(() -> new ResponseStatusException(
+//                        HttpStatus.NOT_FOUND,
+//                        "Account doesn't exist"
+//                ));
+//
+//        BigDecimal total = account.getBalance().add(depositRequest.amount());
+//
+//        account.setBalance(total);
+//        Account savedAccount = accountRepository.save(account);
+//
+//        return accountMapper.toAccountDetailResponse(savedAccount);
+//    }
+//
+//    @Override
+//    public AccountDetailResponse withdraw(String actNo, WithdrawRequest withdrawRequest) {
+//        Account account = accountRepository
+//                .findByActNo(actNo)
+//                .orElseThrow(() -> new ResponseStatusException(
+//                        HttpStatus.NOT_FOUND,
+//                        "Account doesn't exist"
+//                ));
+//        if (account.getBalance().compareTo(withdrawRequest.amount()) < 0) {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+//                    "Insufficient balance");
+//        }else {
+//            BigDecimal total = account.getBalance().subtract(withdrawRequest.amount());
+//            account.setBalance(total);
+//            Account savedAccount = accountRepository.save(account);
+//
+//            return accountMapper.toAccountDetailResponse(savedAccount);
+//        }
+//    }
 
     @Override
     public AccountDetailResponse createNew(CreateAccountRequest createAccountRequest) {

@@ -23,9 +23,9 @@ public interface AccountService {
 
     AccountDetailResponse findByActNo(String actNo);
 
-    AccountDetailResponse deposit(String actNo, DepositRequest depositRequest);
-
-    AccountDetailResponse withdraw(String actNo, WithdrawRequest withdrawRequest);
+//    AccountDetailResponse deposit(String actNo, DepositRequest depositRequest);
+//
+//    AccountDetailResponse withdraw(String actNo, WithdrawRequest withdrawRequest);
 
     AccountDetailResponse createNew(CreateAccountRequest createAccountRequest);
 

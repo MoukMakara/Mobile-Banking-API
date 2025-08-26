@@ -3,10 +3,16 @@ package co.istad.mbanking.features.transaction;
 import co.istad.mbanking.base.BasedTransactionType;
 import co.istad.mbanking.domain.Account;
 import co.istad.mbanking.domain.Transaction;
+import co.istad.mbanking.domain.User;
 import co.istad.mbanking.features.account.AccountRepository;
+import co.istad.mbanking.features.account.dto.AccountDetailResponse;
+import co.istad.mbanking.features.account.dto.DepositRequest;
+import co.istad.mbanking.features.account.dto.WithdrawRequest;
 import co.istad.mbanking.features.transaction.dto.TransactionResponse;
 import co.istad.mbanking.features.transaction.dto.TransferRequest;
+import co.istad.mbanking.mapper.AccountMapper;
 import co.istad.mbanking.mapper.TransactionMapper;
+import co.istad.mbanking.security.CurrentUserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,42 +32,47 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
-
     private final TransactionMapper transactionMapper;
+    private final AccountMapper accountMapper;
+    private final CurrentUserUtil currentUserUtil;
 
     @Transactional
     @Override
     public TransactionResponse transfer(TransferRequest transferRequest, Authentication auth) {
-
-        // Validate actNoOwner
+        // Validate actNoOfOwner
         Account accountOwner = accountRepository
                 .findByActNo(transferRequest.actNoOfOwner())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid account owner"));
 
-        String userEmail = accountOwner.getUserAccount().getUser().getEmail();
-        Jwt jwt = (Jwt) auth.getPrincipal();
+        // Check if the source account belongs to the current authenticated user
+        User currentUser = currentUserUtil.getCurrentUser();
+        boolean isUserAccount = accountOwner.getUserAccount().getUser().getId().equals(currentUser.getId());
 
-
-        log.info("User Email: {}", userEmail);
-        log.info("Auth Email: {}", jwt.getId());
-
-        if (!userEmail.equals(jwt.getId())) {
+        if (!isUserAccount) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
-                    "You are not authorized to perform this action"
+                    "You can only transfer from your own accounts"
             );
         }
 
-        // Validate actNoReceiver
+        // Validate actNoOfReceiver
         Account accountReceiver = accountRepository
                 .findByActNo(transferRequest.actNoOfReceiver())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid account receiver"));
 
-        // Validate amount
-        if (transferRequest.amount().compareTo(BigDecimal.ZERO) < 0) {
+        // Prevent transfer to the same account
+        if (accountOwner.getActNo().equals(accountReceiver.getActNo())) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Transfer amount is invalid"
+                    "Cannot transfer to the same account"
+            );
+        }
+
+        // Validate amount
+        if (transferRequest.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Transfer amount must be greater than zero"
             );
         }
 
@@ -81,18 +92,23 @@ public class TransactionServiceImpl implements TransactionService {
             );
         }
 
-        // ដកលុយចេញពី account owner
+        // Subtract money from owner account
         BigDecimal latestBalanceOfOwner = accountOwner
                 .getBalance()
                 .subtract(transferRequest.amount());
         accountOwner.setBalance(latestBalanceOfOwner);
 
-        // ដាក់លុយចូលទៅ account receiver
+        // Add money to receiver account
         BigDecimal latestBalanceOfReceiver = accountReceiver
                 .getBalance()
                 .add(transferRequest.amount());
         accountReceiver.setBalance(latestBalanceOfReceiver);
 
+        // Save both accounts
+        accountRepository.save(accountOwner);
+        accountRepository.save(accountReceiver);
+
+        // Create transaction record
         Transaction transaction = new Transaction();
         transaction.setOwner(accountOwner);
         transaction.setReceiver(accountReceiver);
@@ -108,4 +124,90 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionMapper.toTransactionResponse(transaction);
     }
 
+    @Transactional
+    @Override
+    public AccountDetailResponse deposit(String actNo, DepositRequest depositRequest) {
+        Account account = accountRepository
+                .findByActNo(actNo)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Account doesn't exist"
+                ));
+
+        // Check if the account belongs to the current authenticated user
+        User currentUser = currentUserUtil.getCurrentUser();
+        boolean isUserAccount = account.getUserAccount().getUser().getId().equals(currentUser.getId());
+
+        if (!isUserAccount) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "You can only deposit to your own accounts"
+            );
+        }
+
+        BigDecimal total = account.getBalance().add(depositRequest.amount());
+        account.setBalance(total);
+
+        // Create a transaction record
+        Transaction transaction = new Transaction();
+        transaction.setReceiver(account);
+        transaction.setOwner(account); // For deposit, owner and receiver are the same
+        transaction.setAmount(depositRequest.amount());
+        transaction.setRemark("Deposit to account");
+        transaction.setTransactionAt(LocalDateTime.now());
+        transaction.setStatus(true);
+        transaction.setIsDeleted(false);
+        transaction.setTransactionType(BasedTransactionType.DEPOSIT.toString());
+
+        transactionRepository.save(transaction);
+        Account savedAccount = accountRepository.save(account);
+
+        return accountMapper.toAccountDetailResponse(savedAccount);
+    }
+
+    @Transactional
+    @Override
+    public AccountDetailResponse withdraw(String actNo, WithdrawRequest withdrawRequest) {
+        Account account = accountRepository
+                .findByActNo(actNo)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Account doesn't exist"
+                ));
+
+        // Check if the account belongs to the current authenticated user
+        User currentUser = currentUserUtil.getCurrentUser();
+        boolean isUserAccount = account.getUserAccount().getUser().getId().equals(currentUser.getId());
+
+        if (!isUserAccount) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "You can only withdraw from your own accounts"
+            );
+        }
+
+        if (account.getBalance().compareTo(withdrawRequest.amount()) < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Insufficient balance");
+        }
+
+        BigDecimal total = account.getBalance().subtract(withdrawRequest.amount());
+        account.setBalance(total);
+
+        // Create a transaction record
+        Transaction transaction = new Transaction();
+        transaction.setOwner(account);
+        transaction.setReceiver(account); // For withdrawal, owner and receiver are the same
+        transaction.setAmount(withdrawRequest.amount());
+        transaction.setRemark("Withdrawal from account");
+        transaction.setTransactionAt(LocalDateTime.now());
+        transaction.setStatus(true);
+        transaction.setIsDeleted(false);
+        transaction.setTransactionType(BasedTransactionType.WITHDRAW.toString());
+
+        transactionRepository.save(transaction);
+        Account savedAccount = accountRepository.save(account);
+
+        return accountMapper.toAccountDetailResponse(savedAccount);
+    }
 }

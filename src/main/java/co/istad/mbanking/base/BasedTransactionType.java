@@ -2,5 +2,7 @@ package co.istad.mbanking.base;
 
 public enum BasedTransactionType {
     TRANSFER,
-    PAYMENT
+    PAYMENT,
+    DEPOSIT,
+    WITHDRAW
 }
