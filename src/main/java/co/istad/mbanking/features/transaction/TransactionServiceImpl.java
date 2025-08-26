@@ -8,6 +8,7 @@ import co.istad.mbanking.features.account.AccountRepository;
 import co.istad.mbanking.features.account.dto.AccountDetailResponse;
 import co.istad.mbanking.features.account.dto.DepositRequest;
 import co.istad.mbanking.features.account.dto.WithdrawRequest;
+import co.istad.mbanking.features.transaction.dto.PaymentRequest;
 import co.istad.mbanking.features.transaction.dto.TransactionResponse;
 import co.istad.mbanking.features.transaction.dto.TransferRequest;
 import co.istad.mbanking.mapper.AccountMapper;
@@ -209,5 +210,93 @@ public class TransactionServiceImpl implements TransactionService {
         Account savedAccount = accountRepository.save(account);
 
         return accountMapper.toAccountDetailResponse(savedAccount);
+    }
+
+    @Transactional
+    @Override
+    public TransactionResponse payment(PaymentRequest paymentRequest, Authentication auth) {
+        // Validate actNoOfOwner
+        Account accountOwner = accountRepository
+                .findByActNo(paymentRequest.actNoOfOwner())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid account owner"));
+
+        // Check if the source account belongs to the current authenticated user
+        User currentUser = currentUserUtil.getCurrentUser();
+        boolean isUserAccount = accountOwner.getUserAccount().getUser().getId().equals(currentUser.getId());
+
+        if (!isUserAccount) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "You can only make payments from your own accounts"
+            );
+        }
+
+        // Validate amount
+        if (paymentRequest.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Payment amount must be greater than zero"
+            );
+        }
+
+        // Validate insufficient balance
+        if (paymentRequest.amount().compareTo(accountOwner.getBalance()) > 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Insufficient balance"
+            );
+        }
+
+        // Validate payment limit
+        if (paymentRequest.amount().compareTo(accountOwner.getTransferLimit()) > 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Payment amount exceeds account limit"
+            );
+        }
+
+        // Subtract money from owner account
+        BigDecimal latestBalanceOfOwner = accountOwner
+                .getBalance()
+                .subtract(paymentRequest.amount());
+        accountOwner.setBalance(latestBalanceOfOwner);
+
+        // Check if the payment receiver is an account in our system
+        Account accountReceiver = null;
+        // Try to find the receiver account by account number
+        if (paymentRequest.paymentReceiver() != null) {
+            accountReceiver = accountRepository.findByActNo(paymentRequest.paymentReceiver()).orElse(null);
+        }
+
+        // If we found a valid account receiver, add money to it
+        if (accountReceiver != null) {
+            // Add money to receiver account
+            BigDecimal latestBalanceOfReceiver = accountReceiver
+                    .getBalance()
+                    .add(paymentRequest.amount());
+            accountReceiver.setBalance(latestBalanceOfReceiver);
+
+            // Save receiver account
+            accountRepository.save(accountReceiver);
+        }
+
+        // Save owner account
+        accountRepository.save(accountOwner);
+
+        // Create transaction record
+        Transaction transaction = new Transaction();
+        transaction.setOwner(accountOwner);
+        transaction.setReceiver(accountReceiver); // Set receiver if it exists
+        transaction.setPaymentReceiver(paymentRequest.paymentReceiver()); // Store payment receiver ID
+        transaction.setAmount(paymentRequest.amount());
+        transaction.setRemark(paymentRequest.remark());
+        transaction.setTransactionAt(LocalDateTime.now());
+        transaction.setStatus(true);
+        transaction.setIsDeleted(false);
+        transaction.setTransactionType(BasedTransactionType.PAYMENT.toString());
+
+        transaction = transactionRepository.save(transaction);
+
+        return transactionMapper.toTransactionResponse(transaction);
     }
 }

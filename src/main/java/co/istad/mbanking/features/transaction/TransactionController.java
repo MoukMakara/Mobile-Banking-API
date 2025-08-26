@@ -4,6 +4,7 @@ import co.istad.mbanking.exception.ApiResponse;
 import co.istad.mbanking.features.account.dto.AccountDetailResponse;
 import co.istad.mbanking.features.account.dto.DepositRequest;
 import co.istad.mbanking.features.account.dto.WithdrawRequest;
+import co.istad.mbanking.features.transaction.dto.PaymentRequest;
 import co.istad.mbanking.features.transaction.dto.TransactionResponse;
 import co.istad.mbanking.features.transaction.dto.TransferRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +33,22 @@ public class TransactionController {
         ApiResponse<TransactionResponse> apiResponse = ApiResponse.<TransactionResponse>builder()
                 .success(true)
                 .message("Transfer successful")
+                .status(HttpStatus.CREATED)
+                .payload(response)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+    }
+
+    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PostMapping("/payments")
+    public ResponseEntity<ApiResponse<TransactionResponse>> payment(@Valid @RequestBody PaymentRequest paymentRequest,
+                                                                    Authentication auth) {
+        TransactionResponse response = transactionService.payment(paymentRequest, auth);
+
+        ApiResponse<TransactionResponse> apiResponse = ApiResponse.<TransactionResponse>builder()
+                .success(true)
+                .message("Payment successful")
                 .status(HttpStatus.CREATED)
                 .payload(response)
                 .build();

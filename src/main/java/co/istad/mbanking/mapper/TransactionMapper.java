@@ -10,6 +10,7 @@ public interface TransactionMapper {
 
     @Mapping(source = "owner.actNo", target = "actNoOfOwner")
     @Mapping(source = "receiver.actNo", target = "actNoOfReceiver")
+    @Mapping(source = "paymentReceiver", target = "paymentReceiver")
     TransactionResponse toTransactionResponse(Transaction transaction);
 
 }
