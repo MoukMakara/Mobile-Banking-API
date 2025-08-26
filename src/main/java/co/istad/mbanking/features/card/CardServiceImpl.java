@@ -4,6 +4,7 @@ import co.istad.mbanking.domain.Card;
 import co.istad.mbanking.domain.CardType;
 import co.istad.mbanking.features.card.dto.CardRequest;
 import co.istad.mbanking.features.card.dto.CardResponse;
+import co.istad.mbanking.features.card.dto.CardTypeResponse;
 import co.istad.mbanking.mapper.CardMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,10 +34,10 @@ public class CardServiceImpl implements CardService {
         }
 
         // Check if card type exists
-        CardType cardType = cardTypeRepository.findById(cardRequest.cardTypeId())
+        CardType cardType = cardTypeRepository.findByAlias(cardRequest.cardTypeAlias())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Card type with ID " + cardRequest.cardTypeId() + " not found"));
+                        "Card type with alias " + cardRequest.cardTypeAlias() + " not found"));
 
         // Create new card
         Card card = cardMapper.fromCardRequest(cardRequest);
@@ -49,7 +50,23 @@ public class CardServiceImpl implements CardService {
 
         // Save and return
         card = cardRepository.save(card);
-        return cardMapper.toCardResponse(card);
+        CardResponse cardResponse = cardMapper.toCardResponse(card);
+
+        // Add card type details
+        CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(cardType);
+
+        return new CardResponse(
+            cardResponse.id(),
+            cardResponse.number(),
+            cardResponse.holder(),
+            cardResponse.cvv(),
+            cardResponse.expiredAt(),
+            cardResponse.isDeleted(),
+            cardResponse.cardTypeId(),
+            cardResponse.cardTypeName(),
+            cardResponse.cardTypeAlias(),
+            cardTypeResponse
+        );
     }
 
     @Override
@@ -62,17 +79,17 @@ public class CardServiceImpl implements CardService {
 
         // Check if number is changed and already exists
         if (cardRequest.number() != null &&
-            !cardRequest.number().equals(card.getNumber()) &&
-            cardRepository.existsByNumber(cardRequest.number())) {
+                !cardRequest.number().equals(card.getNumber()) &&
+                cardRepository.existsByNumber(cardRequest.number())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Card number already exists");
         }
 
         // Check card type if provided
-        if (cardRequest.cardTypeId() != null) {
-            CardType cardType = cardTypeRepository.findById(cardRequest.cardTypeId())
+        if (cardRequest.cardTypeAlias() != null) {
+            CardType cardType = cardTypeRepository.findByAlias(cardRequest.cardTypeAlias())
                     .orElseThrow(() -> new ResponseStatusException(
                             HttpStatus.NOT_FOUND,
-                            "Card type with ID " + cardRequest.cardTypeId() + " not found"));
+                            "Card type with alias " + cardRequest.cardTypeAlias() + " not found"));
             card.setCardType(cardType);
         }
 
@@ -86,7 +103,23 @@ public class CardServiceImpl implements CardService {
 
         // Save and return
         card = cardRepository.save(card);
-        return cardMapper.toCardResponse(card);
+        CardResponse cardResponse = cardMapper.toCardResponse(card);
+
+        // Add card type details
+        CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
+
+        return new CardResponse(
+            cardResponse.id(),
+            cardResponse.number(),
+            cardResponse.holder(),
+            cardResponse.cvv(),
+            cardResponse.expiredAt(),
+            cardResponse.isDeleted(),
+            cardResponse.cardTypeId(),
+            cardResponse.cardTypeName(),
+            cardResponse.cardTypeAlias(),
+            cardTypeResponse
+        );
     }
 
     @Override
@@ -96,7 +129,21 @@ public class CardServiceImpl implements CardService {
                         HttpStatus.NOT_FOUND,
                         "Card with ID " + id + " not found"));
 
-        return cardMapper.toCardResponse(card);
+        CardResponse cardResponse = cardMapper.toCardResponse(card);
+        CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
+
+        return new CardResponse(
+            cardResponse.id(),
+            cardResponse.number(),
+            cardResponse.holder(),
+            cardResponse.cvv(),
+            cardResponse.expiredAt(),
+            cardResponse.isDeleted(),
+            cardResponse.cardTypeId(),
+            cardResponse.cardTypeName(),
+            cardResponse.cardTypeAlias(),
+            cardTypeResponse
+        );
     }
 
     @Override
@@ -110,7 +157,21 @@ public class CardServiceImpl implements CardService {
         card.setIsDeleted(true);
         card = cardRepository.save(card);
 
-        return cardMapper.toCardResponse(card);
+        CardResponse cardResponse = cardMapper.toCardResponse(card);
+        CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
+
+        return new CardResponse(
+            cardResponse.id(),
+            cardResponse.number(),
+            cardResponse.holder(),
+            cardResponse.cvv(),
+            cardResponse.expiredAt(),
+            cardResponse.isDeleted(),
+            cardResponse.cardTypeId(),
+            cardResponse.cardTypeName(),
+            cardResponse.cardTypeAlias(),
+            cardTypeResponse
+        );
     }
 
     @Override
@@ -120,14 +181,46 @@ public class CardServiceImpl implements CardService {
                         HttpStatus.NOT_FOUND,
                         "Card with number " + number + " not found"));
 
-        return cardMapper.toCardResponse(card);
+        CardResponse cardResponse = cardMapper.toCardResponse(card);
+        CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
+
+        return new CardResponse(
+            cardResponse.id(),
+            cardResponse.number(),
+            cardResponse.holder(),
+            cardResponse.cvv(),
+            cardResponse.expiredAt(),
+            cardResponse.isDeleted(),
+            cardResponse.cardTypeId(),
+            cardResponse.cardTypeName(),
+            cardResponse.cardTypeAlias(),
+            cardTypeResponse
+        );
+    }
+
+    private CardResponse enrichCardResponseWithCardType(Card card) {
+        CardResponse cardResponse = cardMapper.toCardResponse(card);
+        CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
+
+        return new CardResponse(
+            cardResponse.id(),
+            cardResponse.number(),
+            cardResponse.holder(),
+            cardResponse.cvv(),
+            cardResponse.expiredAt(),
+            cardResponse.isDeleted(),
+            cardResponse.cardTypeId(),
+            cardResponse.cardTypeName(),
+            cardResponse.cardTypeAlias(),
+            cardTypeResponse
+        );
     }
 
     @Override
     public List<CardResponse> getCardsByHolder(String holder) {
         List<Card> cards = cardRepository.findByHolder(holder);
         return cards.stream()
-                .map(cardMapper::toCardResponse)
+                .map(this::enrichCardResponseWithCardType)
                 .collect(Collectors.toList());
     }
 
@@ -135,7 +228,7 @@ public class CardServiceImpl implements CardService {
     public List<CardResponse> getAllActiveCards() {
         List<Card> activeCards = cardRepository.findByIsDeletedFalse();
         return activeCards.stream()
-                .map(cardMapper::toCardResponse)
+                .map(this::enrichCardResponseWithCardType)
                 .collect(Collectors.toList());
     }
 
@@ -150,7 +243,7 @@ public class CardServiceImpl implements CardService {
 
         List<Card> cards = cardRepository.findByCardTypeId(cardTypeId);
         return cards.stream()
-                .map(cardMapper::toCardResponse)
+                .map(this::enrichCardResponseWithCardType)
                 .collect(Collectors.toList());
     }
 
@@ -158,7 +251,7 @@ public class CardServiceImpl implements CardService {
     public List<CardResponse> getExpiredCards() {
         List<Card> expiredCards = cardRepository.findByExpiredAtBefore(LocalDate.now());
         return expiredCards.stream()
-                .map(cardMapper::toCardResponse)
+                .map(this::enrichCardResponseWithCardType)
                 .collect(Collectors.toList());
     }
 
@@ -166,7 +259,7 @@ public class CardServiceImpl implements CardService {
     public List<CardResponse> getAllCards() {
         List<Card> validCards = cardRepository.findByExpiredAtAfter(LocalDate.now());
         return validCards.stream()
-                .map(cardMapper::toCardResponse)
+                .map(this::enrichCardResponseWithCardType)
                 .collect(Collectors.toList());
     }
 }

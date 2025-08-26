@@ -4,8 +4,7 @@ public record CardRequest(
         String number,
         String holder,
         String cvv,
-        String pin,
         String expiredAt,
-        Integer cardTypeId
+        String cardTypeAlias
 ) {
 }

@@ -4,9 +4,10 @@ public record CardResponse(Integer id,
                            String number,
                            String holder,
                            String cvv,
-                           String pin,
                            String expiredAt,
                            Boolean isDeleted,
                            Integer cardTypeId,
-                           String cardTypeName) {
+                           String cardTypeName,
+                           String cardTypeAlias,
+                           CardTypeResponse cardType) {
 }
