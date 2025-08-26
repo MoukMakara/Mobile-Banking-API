@@ -2,10 +2,12 @@ package co.istad.mbanking.features.card;
 
 import co.istad.mbanking.domain.Card;
 import co.istad.mbanking.domain.CardType;
+import co.istad.mbanking.domain.User;
 import co.istad.mbanking.features.card.dto.CardRequest;
 import co.istad.mbanking.features.card.dto.CardResponse;
 import co.istad.mbanking.features.card.dto.CardTypeResponse;
 import co.istad.mbanking.mapper.CardMapper;
+import co.istad.mbanking.security.CurrentUserUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 
@@ -24,15 +27,52 @@ public class CardServiceImpl implements CardService {
     private final CardMapper cardMapper;
     private final CardRepository cardRepository;
     private final CardTypeRepository cardTypeRepository;
+    private final CurrentUserUtil currentUserUtil;
+//    private final AccountService accountService;
 
+    // Helper method to generate a random card number
+    private String generateCardNumber() {
+        Random random = new Random();
+        StringBuilder cardNumber = new StringBuilder();
+
+        // Most card numbers start with specific digits based on the card network
+        // For simplicity, we'll use 4 (like Visa)
+        cardNumber.append("4");
+
+        // Generate 15 more random digits
+        for (int i = 0; i < 15; i++) {
+            cardNumber.append(random.nextInt(10));
+        }
+
+        // Check if this number already exists
+        if (cardRepository.existsByNumber(cardNumber.toString())) {
+            // If it exists, recursively try again
+            return generateCardNumber();
+        }
+
+        return cardNumber.toString();
+    }
+
+    // Helper method to generate a random 3-digit CVV
+    private String generateCVV() {
+        Random random = new Random();
+        StringBuilder cvv = new StringBuilder();
+
+        for (int i = 0; i < 3; i++) {
+            cvv.append(random.nextInt(10));
+        }
+
+        return cvv.toString();
+    }
+
+    // Helper method to generate an expiry date (typically 3-5 years in the future)
+    private LocalDate generateExpiryDate() {
+        // Set expiry to 4 years from now
+        return LocalDate.now().plusYears(4);
+    }
 
     @Override
     public CardResponse createCard(CardRequest cardRequest) {
-        // Check if card number already exists
-        if (cardRepository.existsByNumber(cardRequest.number())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Card number already exists");
-        }
-
         // Check if card type exists
         CardType cardType = cardTypeRepository.findByAlias(cardRequest.cardTypeAlias())
                 .orElseThrow(() -> new ResponseStatusException(
@@ -40,13 +80,25 @@ public class CardServiceImpl implements CardService {
                         "Card type with alias " + cardRequest.cardTypeAlias() + " not found"));
 
         // Create new card
-        Card card = cardMapper.fromCardRequest(cardRequest);
+        Card card = new Card();
+        card.setHolder(cardRequest.holder());
 
-        // Set additional fields
+        // Auto-generate card number, CVV, and expiry date
+        String cardNumber = generateCardNumber();
+        String cvv = generateCVV();
+        LocalDate expiryDate = generateExpiryDate();
+
+        // Set generated and additional fields
+        card.setNumber(cardNumber);
+        card.setCvv(cvv);
         card.setCardType(cardType);
         card.setIssuedAt(LocalDate.now());
-        card.setExpiredAt(LocalDate.parse(cardRequest.expiredAt(), DateTimeFormatter.ISO_DATE));
+        card.setExpiredAt(expiryDate);
         card.setIsDeleted(false);
+
+        // Get current user and set as the owner of the card
+        User currentUser = currentUserUtil.getCurrentUser();
+        card.setUser(currentUser);
 
         // Save and return
         card = cardRepository.save(card);
@@ -77,15 +129,13 @@ public class CardServiceImpl implements CardService {
                         HttpStatus.NOT_FOUND,
                         "Card with ID " + id + " not found"));
 
-        // Check if number is changed and already exists
-        if (cardRequest.number() != null &&
-                !cardRequest.number().equals(card.getNumber()) &&
-                cardRepository.existsByNumber(cardRequest.number())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Card number already exists");
+        // Update the card holder if provided
+        if (cardRequest.holder() != null && !cardRequest.holder().isBlank()) {
+            card.setHolder(cardRequest.holder());
         }
 
-        // Check card type if provided
-        if (cardRequest.cardTypeAlias() != null) {
+        // Check card type and update if provided
+        if (cardRequest.cardTypeAlias() != null && !cardRequest.cardTypeAlias().isBlank()) {
             CardType cardType = cardTypeRepository.findByAlias(cardRequest.cardTypeAlias())
                     .orElseThrow(() -> new ResponseStatusException(
                             HttpStatus.NOT_FOUND,
@@ -93,13 +143,17 @@ public class CardServiceImpl implements CardService {
             card.setCardType(cardType);
         }
 
-        // Update card fields (ignoring nulls)
-        cardMapper.updateCardFromRequest(cardRequest, card);
+        // Auto-generate new card details (similar to createCard)
+        String cardNumber = generateCardNumber();
+        String cvv = generateCVV();
+        LocalDate expiryDate = generateExpiryDate();
 
-        // Update expired date if provided
-        if (cardRequest.expiredAt() != null) {
-            card.setExpiredAt(LocalDate.parse(cardRequest.expiredAt(), DateTimeFormatter.ISO_DATE));
-        }
+        // Set the new auto-generated values
+        card.setNumber(cardNumber);
+        card.setCvv(cvv);
+        card.setExpiredAt(expiryDate);
+        // Reset the issue date to current date when updating
+        card.setIssuedAt(LocalDate.now());
 
         // Save and return
         card = cardRepository.save(card);
@@ -259,6 +313,20 @@ public class CardServiceImpl implements CardService {
     public List<CardResponse> getAllCards() {
         List<Card> validCards = cardRepository.findByExpiredAtAfter(LocalDate.now());
         return validCards.stream()
+                .map(this::enrichCardResponseWithCardType)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CardResponse> getCurrentUserCards() {
+        // Get the current user
+        User currentUser = currentUserUtil.getCurrentUser();
+
+        // Find all cards owned by this user
+        List<Card> userCards = cardRepository.findByUserId(currentUser.getId());
+
+        // Map to response DTOs and return
+        return userCards.stream()
                 .map(this::enrichCardResponseWithCardType)
                 .collect(Collectors.toList());
     }

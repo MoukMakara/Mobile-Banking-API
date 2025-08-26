@@ -41,4 +41,7 @@ public class Card {
     @ManyToOne
     private CardType cardType;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

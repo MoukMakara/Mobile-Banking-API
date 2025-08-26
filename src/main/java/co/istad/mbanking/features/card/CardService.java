@@ -18,6 +18,8 @@ public interface CardService {
 
     List<CardResponse> getCardsByHolder(String holder);
 
+    List<CardResponse> getCurrentUserCards();
+
     List<CardResponse> getAllActiveCards();
 
     List<CardResponse> getCardsByCardTypeId(Integer cardTypeId);

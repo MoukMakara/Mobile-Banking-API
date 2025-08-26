@@ -17,6 +17,9 @@ public interface CardRepository extends JpaRepository<Card, Integer> {
     // Find card by holder name
     List<Card> findByHolder(String holder);
 
+    // Find cards by user ID
+    List<Card> findByUserId(Integer userId);
+
     // Find active (not deleted) cards
     List<Card> findByIsDeletedFalse();
 

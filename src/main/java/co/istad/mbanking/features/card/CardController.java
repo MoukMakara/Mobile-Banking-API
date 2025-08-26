@@ -19,7 +19,7 @@ public class CardController {
 
     private final CardService cardService;
 
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER','ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_CUSTOMER')")
     @PostMapping
     public ResponseEntity<ApiResponse<CardResponse>> createCard(@Valid @RequestBody CardRequest cardRequest) {
         CardResponse response = cardService.createCard(cardRequest);
@@ -34,7 +34,7 @@ public class CardController {
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER','ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_CUSTOMER')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CardResponse>> updateCard(@PathVariable Integer id,
                                                                 @Valid @RequestBody CardRequest cardRequest) {
@@ -111,6 +111,21 @@ public class CardController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_CUSTOMER')")
+    @GetMapping("/my-cards")
+    public ResponseEntity<ApiResponse<List<CardResponse>>> getCurrentUserCards() {
+        List<CardResponse> response = cardService.getCurrentUserCards();
+
+        ApiResponse<List<CardResponse>> apiResponse = ApiResponse.<List<CardResponse>>builder()
+                .success(true)
+                .message("Your cards retrieved successfully")
+                .status(HttpStatus.OK)
+                .payload(response)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @PreAuthorize("hasAuthority('ROLE_USER')")
     @GetMapping("/active")
     public ResponseEntity<ApiResponse<List<CardResponse>>> getAllActiveCards() {
@@ -156,14 +171,14 @@ public class CardController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PreAuthorize("hasAuthority('ROLE_USER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_MANAGER','ROLE_ADMIN')")
     @GetMapping("/all-cards")
-    public ResponseEntity<ApiResponse<List<CardResponse>>> getValidCards() {
+    public ResponseEntity<ApiResponse<List<CardResponse>>> getAllCards() {
         List<CardResponse> response = cardService.getAllCards();
 
         ApiResponse<List<CardResponse>> apiResponse = ApiResponse.<List<CardResponse>>builder()
                 .success(true)
-                .message("Valid cards retrieved successfully")
+                .message("All cards retrieved successfully")
                 .status(HttpStatus.OK)
                 .payload(response)
                 .build();
