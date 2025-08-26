@@ -18,5 +18,8 @@ public interface AccountTypeService {
 
     AccountTypeResponse deleteByAlias(String alias);
 
+    List<AccountTypeResponse> findAccountTypesByUserId(Integer userId);
+
+    List<AccountTypeResponse> findAccountTypesByUserUuid(String userUuid);
 
 }

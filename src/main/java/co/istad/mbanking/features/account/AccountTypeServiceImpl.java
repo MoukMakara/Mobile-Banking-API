@@ -1,6 +1,8 @@
 package co.istad.mbanking.features.account;
 
+import co.istad.mbanking.domain.Account;
 import co.istad.mbanking.domain.AccountType;
+import co.istad.mbanking.domain.User;
 import co.istad.mbanking.features.account.dto.AccountTypeRequest;
 import co.istad.mbanking.features.account.dto.AccountTypeResponse;
 import co.istad.mbanking.features.account.dto.AccountTypeUpdateRequest;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +23,7 @@ public class AccountTypeServiceImpl implements AccountTypeService {
 
     private final AccountTypeRepository accountTypeRepository;
     private final AccountTypeMapper accountTypeMapper;
+    private final UserAccountRepository userAccountRepository;
 
     @Override
     public List<AccountTypeResponse> findAll() {
@@ -86,6 +90,29 @@ public class AccountTypeServiceImpl implements AccountTypeService {
         accountTypeRepository.delete(accountType);
 
         return accountTypeMapper.toAccountTypeResponse(accountType);
+    }
+
+    @Override
+    public List<AccountTypeResponse> findAccountTypesByUserId(Integer userId) {
+        // We should find the user's UUID from their ID
+        // For now, let's implement using UUID directly
+        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,
+                "Method not implemented. Use findAccountTypesByUserUuid instead.");
+    }
+
+    public List<AccountTypeResponse> findAccountTypesByUserUuid(String userUuid) {
+        // Find accounts associated with the user UUID
+        List<Account> userAccounts = userAccountRepository.findActiveAccountsByUserUuid(userUuid);
+
+        // Extract unique account types from the accounts
+        List<AccountType> accountTypes = userAccounts.stream()
+                .map(Account::getAccountType)
+                .filter(accountType -> accountType != null && !accountType.getIsDeleted())
+                .distinct()
+                .collect(Collectors.toList());
+
+        // Map account types to response DTOs
+        return accountTypeMapper.toAccountTypeResponseList(accountTypes);
     }
 
 }

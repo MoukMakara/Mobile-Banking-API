@@ -72,8 +72,8 @@ public class SwaggerConfig {
                 .components(new Components().addSecuritySchemes
                         ("Bearer Authentication", createAPIKeyScheme()))
                 .info(new Info()
-                        .title("SBC11 Mobile Banking API")
-                        .description("SBC11 Mobile Banking API 2024")
+                        .title("Mobile Banking API")
+                        .description("Mobile Banking API 2024")
                         .version("1.0")
                         .contact(new Contact()
                                 .name("Mouk Makara")

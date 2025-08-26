@@ -106,7 +106,11 @@ public class AccountTypeController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<List<AccountTypeResponse>>> getAccountTypesForCurrentUser() {
-        List<AccountTypeResponse> response = accountTypeService.findAll();
+        // Get the current authenticated user's UUID
+        String currentUserUuid = currentUserUtil.getCurrentUserUuid();
+
+        // Get account types associated with the current user
+        List<AccountTypeResponse> response = accountTypeService.findAccountTypesByUserUuid(currentUserUuid);
 
         ApiResponse<List<AccountTypeResponse>> apiResponse = ApiResponse.<List<AccountTypeResponse>>builder()
                 .success(true)
