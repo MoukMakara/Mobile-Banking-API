@@ -1,13 +1,13 @@
 package co.istad.mbanking.mapper;
 
 import co.istad.mbanking.domain.Card;
+import co.istad.mbanking.features.account.dto.AccountDetailResponse;
 import co.istad.mbanking.features.card.dto.CardRequest;
 import co.istad.mbanking.features.card.dto.CardResponse;
 import co.istad.mbanking.features.card.dto.CardTypeResponse;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
+
+import java.util.List;
 
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface CardMapper {
@@ -27,12 +27,13 @@ public interface CardMapper {
     @Mapping(target = "account", ignore = true)
     void updateCardFromRequest(CardRequest cardRequest, @MappingTarget Card card);
 
-    @Mapping(target = "cardTypeId", source = "cardType.id")
-    @Mapping(target = "cardTypeName", source = "cardType.name")
-    @Mapping(target = "cardTypeAlias", source = "cardType.alias")
+//    @Mapping(target = "cardTypeId", source = "cardType.id")
+//    @Mapping(target = "cardTypeName", source = "cardType.name")
+//    @Mapping(target = "cardTypeAlias", source = "cardType.alias")
     @Mapping(target = "expiredAt", dateFormat = "yyyy-MM-dd")
+    @Mapping(target = "account", ignore = true) // Ignore the account mapping
     CardResponse toCardResponse(Card card);
 
-    @Mapping(target = "description", source = "cardType.name") // Using name as description for now
+//    @Mapping(target = "description", source = "cardType.name") // Using name as description for now
     CardTypeResponse toCardTypeResponse(co.istad.mbanking.domain.CardType cardType);
 }

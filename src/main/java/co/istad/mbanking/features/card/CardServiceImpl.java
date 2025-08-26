@@ -3,9 +3,13 @@ package co.istad.mbanking.features.card;
 import co.istad.mbanking.domain.Card;
 import co.istad.mbanking.domain.CardType;
 import co.istad.mbanking.domain.User;
+import co.istad.mbanking.features.account.AccountRepository;
+import co.istad.mbanking.features.account.AccountService;
+import co.istad.mbanking.features.account.dto.AccountDetailResponse;
 import co.istad.mbanking.features.card.dto.CardRequest;
 import co.istad.mbanking.features.card.dto.CardResponse;
 import co.istad.mbanking.features.card.dto.CardTypeResponse;
+import co.istad.mbanking.mapper.AccountMapper;
 import co.istad.mbanking.mapper.CardMapper;
 import co.istad.mbanking.security.CurrentUserUtil;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +32,9 @@ public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
     private final CardTypeRepository cardTypeRepository;
     private final CurrentUserUtil currentUserUtil;
-//    private final AccountService accountService;
+    private final AccountRepository accountRepository;
+    private final AccountMapper accountMapper;
+    private final AccountService accountService;
 
     // Helper method to generate a random card number
     private String generateCardNumber() {
@@ -107,6 +113,9 @@ public class CardServiceImpl implements CardService {
         // Add card type details
         CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(cardType);
 
+        // Get all accounts for the current user
+        List<AccountDetailResponse> userAccounts = accountService.findCurrentUserAccounts();
+
         return new CardResponse(
             cardResponse.id(),
             cardResponse.number(),
@@ -114,10 +123,11 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-            cardResponse.cardTypeId(),
-            cardResponse.cardTypeName(),
-            cardResponse.cardTypeAlias(),
-            cardTypeResponse
+//            cardResponse.cardTypeId(),
+//            cardResponse.cardTypeName(),
+//            cardResponse.cardTypeAlias(),
+            cardTypeResponse,
+            userAccounts
         );
     }
 
@@ -162,6 +172,9 @@ public class CardServiceImpl implements CardService {
         // Add card type details
         CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
 
+        // Get all accounts for the current user
+        List<AccountDetailResponse> userAccounts = accountService.findCurrentUserAccounts();
+
         return new CardResponse(
             cardResponse.id(),
             cardResponse.number(),
@@ -169,10 +182,11 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-            cardResponse.cardTypeId(),
-            cardResponse.cardTypeName(),
-            cardResponse.cardTypeAlias(),
-            cardTypeResponse
+//            cardResponse.cardTypeId(),
+//            cardResponse.cardTypeName(),
+//            cardResponse.cardTypeAlias(),
+            cardTypeResponse,
+            userAccounts
         );
     }
 
@@ -186,6 +200,9 @@ public class CardServiceImpl implements CardService {
         CardResponse cardResponse = cardMapper.toCardResponse(card);
         CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
 
+        // Get all accounts for the current user
+        List<AccountDetailResponse> userAccounts = accountService.findCurrentUserAccounts();
+
         return new CardResponse(
             cardResponse.id(),
             cardResponse.number(),
@@ -193,10 +210,11 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-            cardResponse.cardTypeId(),
-            cardResponse.cardTypeName(),
-            cardResponse.cardTypeAlias(),
-            cardTypeResponse
+//            cardResponse.cardTypeId(),
+//            cardResponse.cardTypeName(),
+//            cardResponse.cardTypeAlias(),
+            cardTypeResponse,
+            userAccounts
         );
     }
 
@@ -214,6 +232,9 @@ public class CardServiceImpl implements CardService {
         CardResponse cardResponse = cardMapper.toCardResponse(card);
         CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
 
+        // Get all accounts for the current user
+        List<AccountDetailResponse> userAccounts = accountService.findCurrentUserAccounts();
+
         return new CardResponse(
             cardResponse.id(),
             cardResponse.number(),
@@ -221,10 +242,11 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-            cardResponse.cardTypeId(),
-            cardResponse.cardTypeName(),
-            cardResponse.cardTypeAlias(),
-            cardTypeResponse
+//            cardResponse.cardTypeId(),
+//            cardResponse.cardTypeName(),
+//            cardResponse.cardTypeAlias(),
+            cardTypeResponse,
+            userAccounts
         );
     }
 
@@ -238,6 +260,9 @@ public class CardServiceImpl implements CardService {
         CardResponse cardResponse = cardMapper.toCardResponse(card);
         CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
 
+        // Get all accounts for the current user
+        List<AccountDetailResponse> userAccounts = accountService.findCurrentUserAccounts();
+
         return new CardResponse(
             cardResponse.id(),
             cardResponse.number(),
@@ -245,10 +270,11 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-            cardResponse.cardTypeId(),
-            cardResponse.cardTypeName(),
-            cardResponse.cardTypeAlias(),
-            cardTypeResponse
+//            cardResponse.cardTypeId(),
+//            cardResponse.cardTypeName(),
+//            cardResponse.cardTypeAlias(),
+            cardTypeResponse,
+            userAccounts
         );
     }
 
@@ -256,6 +282,9 @@ public class CardServiceImpl implements CardService {
         CardResponse cardResponse = cardMapper.toCardResponse(card);
         CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
 
+        // Get all accounts for the current user
+        List<AccountDetailResponse> userAccounts = accountService.findCurrentUserAccounts();
+
         return new CardResponse(
             cardResponse.id(),
             cardResponse.number(),
@@ -263,10 +292,11 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-            cardResponse.cardTypeId(),
-            cardResponse.cardTypeName(),
-            cardResponse.cardTypeAlias(),
-            cardTypeResponse
+//            cardResponse.cardTypeId(),
+//            cardResponse.cardTypeName(),
+//            cardResponse.cardTypeAlias(),
+            cardTypeResponse,
+            userAccounts
         );
     }
 
