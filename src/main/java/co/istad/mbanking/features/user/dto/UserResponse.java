@@ -13,8 +13,7 @@ public record UserResponse(
         String email,
         String profileImage,
         Boolean isVerified,
-        Boolean isBlocked
-//        List<String> roles
+        Boolean isBlocked,
+        List<String> roles
 ) {
 }
-

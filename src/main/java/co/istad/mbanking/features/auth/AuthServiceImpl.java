@@ -141,9 +141,8 @@ public class AuthServiceImpl implements AuthService {
 
         auth = daoAuthenticationProvider.authenticate(auth);
 
-        /*CustomUserDetails customUserDetails = (CustomUserDetails) auth.getPrincipal();
-        log.info(customUserDetails.getUser().getName());*/
-
+        CustomUserDetails customUserDetails = (CustomUserDetails) auth.getPrincipal();
+        User user = customUserDetails.getUser();
 
         // Prepare SCOPE
         log.info("Authorities: {}", auth.getAuthorities());
@@ -186,10 +185,25 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwt.getTokenValue();
         String refreshToken = jwtRefreshToken.getTokenValue();
 
+        // Extract all user roles
+        List<String> userRoles = user.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toList());
+
+        // Create user info for JWT response
+        UserDto userDto = UserDto.builder()
+                .uuid(user.getUuid())
+                .name(user.getName())
+                .email(user.getEmail())
+                .profileImage(user.getProfileImage())
+                .roles(userRoles)
+                .build();
+
         return JwtResponse.builder()
                 .tokenType(TOKEN_TYPE)
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .user(userDto)
                 .build();
     }
 
