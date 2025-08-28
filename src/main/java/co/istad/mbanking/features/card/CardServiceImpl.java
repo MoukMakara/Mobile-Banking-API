@@ -101,6 +101,7 @@ public class CardServiceImpl implements CardService {
         card.setIssuedAt(LocalDate.now());
         card.setExpiredAt(expiryDate);
         card.setIsDeleted(false);
+        card.setIsFrozen(false);
 
         // Get current user and set as the owner of the card
         User currentUser = currentUserUtil.getCurrentUser();
@@ -123,9 +124,7 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-//            cardResponse.cardTypeId(),
-//            cardResponse.cardTypeName(),
-//            cardResponse.cardTypeAlias(),
+            cardResponse.isFrozen(),
             cardTypeResponse,
             userAccounts
         );
@@ -182,9 +181,7 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-//            cardResponse.cardTypeId(),
-//            cardResponse.cardTypeName(),
-//            cardResponse.cardTypeAlias(),
+            cardResponse.isFrozen(),
             cardTypeResponse,
             userAccounts
         );
@@ -210,9 +207,7 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-//            cardResponse.cardTypeId(),
-//            cardResponse.cardTypeName(),
-//            cardResponse.cardTypeAlias(),
+            cardResponse.isFrozen(),
             cardTypeResponse,
             userAccounts
         );
@@ -242,9 +237,7 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-//            cardResponse.cardTypeId(),
-//            cardResponse.cardTypeName(),
-//            cardResponse.cardTypeAlias(),
+            cardResponse.isFrozen(),
             cardTypeResponse,
             userAccounts
         );
@@ -270,9 +263,7 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-//            cardResponse.cardTypeId(),
-//            cardResponse.cardTypeName(),
-//            cardResponse.cardTypeAlias(),
+            cardResponse.isFrozen(),
             cardTypeResponse,
             userAccounts
         );
@@ -292,9 +283,7 @@ public class CardServiceImpl implements CardService {
             cardResponse.cvv(),
             cardResponse.expiredAt(),
             cardResponse.isDeleted(),
-//            cardResponse.cardTypeId(),
-//            cardResponse.cardTypeName(),
-//            cardResponse.cardTypeAlias(),
+            cardResponse.isFrozen(),
             cardTypeResponse,
             userAccounts
         );
@@ -359,5 +348,87 @@ public class CardServiceImpl implements CardService {
         return userCards.stream()
                 .map(this::enrichCardResponseWithCardType)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public CardResponse freezeCard(Integer id) {
+        // Find card by ID
+        Card card = cardRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Card with ID " + id + " not found"));
+
+        // Check if card is already frozen
+        if (card.getIsFrozen()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Card is already frozen");
+        }
+
+        // Set card as frozen
+        card.setIsFrozen(true);
+
+        // Save the updated card
+        card = cardRepository.save(card);
+
+        // Return updated card response
+        CardResponse cardResponse = cardMapper.toCardResponse(card);
+        CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
+
+        // Get all accounts for the current user
+        List<AccountDetailResponse> userAccounts = accountService.findCurrentUserAccounts();
+
+        return new CardResponse(
+            cardResponse.id(),
+            cardResponse.number(),
+            cardResponse.holder(),
+            cardResponse.cvv(),
+            cardResponse.expiredAt(),
+            cardResponse.isDeleted(),
+            cardResponse.isFrozen(),
+            cardTypeResponse,
+            userAccounts
+        );
+    }
+
+    @Override
+    public CardResponse unfreezeCard(Integer id) {
+        // Find card by ID
+        Card card = cardRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Card with ID " + id + " not found"));
+
+        // Check if card is already unfrozen
+        if (!card.getIsFrozen()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Card is already unfrozen");
+        }
+
+        // Set card as unfrozen
+        card.setIsFrozen(false);
+
+        // Save the updated card
+        card = cardRepository.save(card);
+
+        // Return updated card response
+        CardResponse cardResponse = cardMapper.toCardResponse(card);
+        CardTypeResponse cardTypeResponse = cardMapper.toCardTypeResponse(card.getCardType());
+
+        // Get all accounts for the current user
+        List<AccountDetailResponse> userAccounts = accountService.findCurrentUserAccounts();
+
+        return new CardResponse(
+            cardResponse.id(),
+            cardResponse.number(),
+            cardResponse.holder(),
+            cardResponse.cvv(),
+            cardResponse.expiredAt(),
+            cardResponse.isDeleted(),
+            cardResponse.isFrozen(),
+            cardTypeResponse,
+            userAccounts
+        );
     }
 }

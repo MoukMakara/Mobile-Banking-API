@@ -185,4 +185,34 @@ public class CardController {
 
         return ResponseEntity.ok(apiResponse);
     }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_CUSTOMER','ROLE_STAFF','ROLE_MANAGER','ROLE_ADMIN')")
+    @PutMapping("/{id}/freeze")
+    public ResponseEntity<ApiResponse<CardResponse>> freezeCard(@PathVariable Integer id) {
+        CardResponse response = cardService.freezeCard(id);
+
+        ApiResponse<CardResponse> apiResponse = ApiResponse.<CardResponse>builder()
+                .success(true)
+                .message("Card has been frozen successfully")
+                .status(HttpStatus.OK)
+                .payload(response)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_CUSTOMER','ROLE_STAFF','ROLE_MANAGER','ROLE_ADMIN')")
+    @PutMapping("/{id}/unfreeze")
+    public ResponseEntity<ApiResponse<CardResponse>> unfreezeCard(@PathVariable Integer id) {
+        CardResponse response = cardService.unfreezeCard(id);
+
+        ApiResponse<CardResponse> apiResponse = ApiResponse.<CardResponse>builder()
+                .success(true)
+                .message("Card has been unfrozen successfully")
+                .status(HttpStatus.OK)
+                .payload(response)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
 }

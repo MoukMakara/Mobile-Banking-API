@@ -27,4 +27,8 @@ public interface CardService {
     List<CardResponse> getExpiredCards();
 
     List<CardResponse> getAllCards();
+
+    CardResponse freezeCard(Integer id);
+
+    CardResponse unfreezeCard(Integer id);
 }

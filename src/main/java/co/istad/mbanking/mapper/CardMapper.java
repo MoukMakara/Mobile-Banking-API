@@ -17,6 +17,7 @@ public interface CardMapper {
     @Mapping(target = "issuedAt", ignore = true)
     @Mapping(target = "expiredAt", ignore = true)
     @Mapping(target = "isDeleted", ignore = true)
+    @Mapping(target = "isFrozen", ignore = true)
     @Mapping(target = "account", ignore = true)
     Card fromCardRequest(CardRequest cardRequest);
 
@@ -24,6 +25,7 @@ public interface CardMapper {
     @Mapping(target = "issuedAt", ignore = true)
     @Mapping(target = "expiredAt", ignore = true)
     @Mapping(target = "isDeleted", ignore = true)
+    @Mapping(target = "isFrozen", ignore = true)
     @Mapping(target = "account", ignore = true)
     void updateCardFromRequest(CardRequest cardRequest, @MappingTarget Card card);
 

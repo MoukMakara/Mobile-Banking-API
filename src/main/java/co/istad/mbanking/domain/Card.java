@@ -35,6 +35,9 @@ public class Card {
     @Column(nullable = false)
     private Boolean isDeleted;
 
+    @Column(nullable = false)
+    private Boolean isFrozen = false;
+
     @OneToOne(mappedBy = "card")
     private Account account;
 
