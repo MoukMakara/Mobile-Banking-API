@@ -15,3 +15,4 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
     Boolean existsByActNo(String actNo);
 
 }
+

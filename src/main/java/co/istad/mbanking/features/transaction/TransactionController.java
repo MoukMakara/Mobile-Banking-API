@@ -5,6 +5,7 @@ import co.istad.mbanking.features.account.dto.AccountDetailResponse;
 import co.istad.mbanking.features.account.dto.DepositRequest;
 import co.istad.mbanking.features.account.dto.WithdrawRequest;
 import co.istad.mbanking.features.transaction.dto.PaymentRequest;
+import co.istad.mbanking.features.transaction.dto.TransactionHistoryResponse;
 import co.istad.mbanking.features.transaction.dto.TransactionResponse;
 import co.istad.mbanking.features.transaction.dto.TransferRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -88,5 +89,60 @@ public class TransactionController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_MANAGER', 'ROLE_ADMIN')")
+    @GetMapping("/accounts/all-history/{actNo}")
+    public ResponseEntity<ApiResponse<TransactionHistoryResponse>> getTransactionHistoryByAccount(
+            @PathVariable String actNo,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        TransactionHistoryResponse response = transactionService.getTransactionHistoryByAccount(actNo, page, size);
+
+        ApiResponse<TransactionHistoryResponse> apiResponse = ApiResponse.<TransactionHistoryResponse>builder()
+                .success(true)
+                .message("Transaction history retrieved successfully")
+                .status(HttpStatus.OK)
+                .payload(response)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_STAFF', 'ROLE_MANAGER', 'ROLE_ADMIN')")
+    @GetMapping("/accounts/all-history")
+    public ResponseEntity<ApiResponse<TransactionHistoryResponse>> getAllTransactionHistory(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        TransactionHistoryResponse response = transactionService.getAllTransactionHistory(page, size);
+
+        ApiResponse<TransactionHistoryResponse> apiResponse = ApiResponse.<TransactionHistoryResponse>builder()
+                .success(true)
+                .message("All transactions history retrieved successfully")
+                .status(HttpStatus.OK)
+                .payload(response)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PreAuthorize("hasAnyAuthority('ROLE_USER', 'ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_MANAGER', 'ROLE_ADMIN')")
+    @GetMapping("/accounts/current-user-history")
+    public ResponseEntity<ApiResponse<TransactionHistoryResponse>> getCurrentUserTransactionHistory(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        TransactionHistoryResponse response = transactionService.getCurrentUserTransactionHistory(page, size);
+
+        ApiResponse<TransactionHistoryResponse> apiResponse = ApiResponse.<TransactionHistoryResponse>builder()
+                .success(true)
+                .message("Current user transaction history retrieved successfully")
+                .status(HttpStatus.OK)
+                .payload(response)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
     }
 }

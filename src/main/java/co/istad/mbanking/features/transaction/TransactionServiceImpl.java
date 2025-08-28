@@ -9,6 +9,7 @@ import co.istad.mbanking.features.account.dto.AccountDetailResponse;
 import co.istad.mbanking.features.account.dto.DepositRequest;
 import co.istad.mbanking.features.account.dto.WithdrawRequest;
 import co.istad.mbanking.features.transaction.dto.PaymentRequest;
+import co.istad.mbanking.features.transaction.dto.TransactionHistoryResponse;
 import co.istad.mbanking.features.transaction.dto.TransactionResponse;
 import co.istad.mbanking.features.transaction.dto.TransferRequest;
 import co.istad.mbanking.mapper.AccountMapper;
@@ -16,6 +17,9 @@ import co.istad.mbanking.mapper.TransactionMapper;
 import co.istad.mbanking.security.CurrentUserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -25,6 +29,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -298,5 +304,84 @@ public class TransactionServiceImpl implements TransactionService {
         transaction = transactionRepository.save(transaction);
 
         return transactionMapper.toTransactionResponse(transaction);
+    }
+
+    @Override
+    public TransactionHistoryResponse getTransactionHistoryByAccount(String actNo, int page, int size) {
+        // Check if account exists
+        accountRepository.findByActNo(actNo)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+
+        // Adjust page number to be zero-based for Spring Data
+        int adjustedPage = page > 0 ? page - 1 : 0;
+        Pageable pageable = PageRequest.of(adjustedPage, size);
+
+        // Fetch transactions for the account
+        Page<Transaction> transactionsPage = transactionRepository.findTransactionHistoryByAccountNumber(actNo, pageable);
+
+        // Convert transactions to DTOs
+        List<TransactionResponse> transactionResponses = transactionsPage.getContent().stream()
+                .map(transactionMapper::toTransactionResponse)
+                .collect(Collectors.toList());
+
+        // Build response
+        return TransactionHistoryResponse.builder()
+                .accountNo(actNo)
+                .transactions(transactionResponses)
+                .page(page)
+                .size(size)
+                .totalPages(transactionsPage.getTotalPages())
+                .build();
+    }
+
+    @Override
+    public TransactionHistoryResponse getAllTransactionHistory(int page, int size) {
+        // Adjust page number to be zero-based for Spring Data
+        int adjustedPage = page > 0 ? page - 1 : 0;
+        Pageable pageable = PageRequest.of(adjustedPage, size);
+
+        // Fetch all transactions
+        Page<Transaction> transactionsPage = transactionRepository.findAllTransactions(pageable);
+
+        // Convert transactions to DTOs
+        List<TransactionResponse> transactionResponses = transactionsPage.getContent().stream()
+                .map(transactionMapper::toTransactionResponse)
+                .collect(Collectors.toList());
+
+        // Build response
+        return TransactionHistoryResponse.builder()
+                .accountNo(null) // null because it's not specific to one account
+                .transactions(transactionResponses)
+                .page(page)
+                .size(size)
+                .totalPages(transactionsPage.getTotalPages())
+                .build();
+    }
+
+    @Override
+    public TransactionHistoryResponse getCurrentUserTransactionHistory(int page, int size) {
+        // Get the current authenticated user
+        User currentUser = currentUserUtil.getCurrentUser();
+
+        // Adjust page number to be zero-based for Spring Data
+        int adjustedPage = page > 0 ? page - 1 : 0;
+        Pageable pageable = PageRequest.of(adjustedPage, size);
+
+        // Fetch transactions for all accounts of the current user
+        Page<Transaction> transactionsPage = transactionRepository.findTransactionHistoryByUser(currentUser, pageable);
+
+        // Convert transactions to DTOs
+        List<TransactionResponse> transactionResponses = transactionsPage.getContent().stream()
+                .map(transactionMapper::toTransactionResponse)
+                .collect(Collectors.toList());
+
+        // Build response
+        return TransactionHistoryResponse.builder()
+                .accountNo(null) // null because it's across multiple accounts
+                .transactions(transactionResponses)
+                .page(page)
+                .size(size)
+                .totalPages(transactionsPage.getTotalPages())
+                .build();
     }
 }
