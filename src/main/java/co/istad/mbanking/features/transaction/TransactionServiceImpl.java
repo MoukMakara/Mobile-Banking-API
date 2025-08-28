@@ -334,6 +334,35 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
     }
 
+    // Method with transactionType parameter for filtering account transactions
+    @Override
+    public TransactionHistoryResponse getTransactionHistoryByAccount(String actNo, int page, int size, String transactionType) {
+        // Check if account exists
+        accountRepository.findByActNo(actNo)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+
+        // Adjust page number to be zero-based for Spring Data
+        int adjustedPage = page > 0 ? page - 1 : 0;
+        Pageable pageable = PageRequest.of(adjustedPage, size);
+
+        // Fetch transactions for the account with optional type filter
+        Page<Transaction> transactionsPage = transactionRepository.findTransactionHistoryByAccountNumberAndType(actNo, transactionType, pageable);
+
+        // Convert transactions to DTOs
+        List<TransactionResponse> transactionResponses = transactionsPage.getContent().stream()
+                .map(transactionMapper::toTransactionResponse)
+                .collect(Collectors.toList());
+
+        // Build response
+        return TransactionHistoryResponse.builder()
+                .accountNo(actNo)
+                .transactions(transactionResponses)
+                .page(page)
+                .size(size)
+                .totalPages(transactionsPage.getTotalPages())
+                .build();
+    }
+
     @Override
     public TransactionHistoryResponse getAllTransactionHistory(int page, int size) {
         // Adjust page number to be zero-based for Spring Data
@@ -342,6 +371,31 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Fetch all transactions
         Page<Transaction> transactionsPage = transactionRepository.findAllTransactions(pageable);
+
+        // Convert transactions to DTOs
+        List<TransactionResponse> transactionResponses = transactionsPage.getContent().stream()
+                .map(transactionMapper::toTransactionResponse)
+                .collect(Collectors.toList());
+
+        // Build response
+        return TransactionHistoryResponse.builder()
+                .accountNo(null) // null because it's not specific to one account
+                .transactions(transactionResponses)
+                .page(page)
+                .size(size)
+                .totalPages(transactionsPage.getTotalPages())
+                .build();
+    }
+
+    // Method with transactionType parameter for filtering all transactions (admin/staff)
+    @Override
+    public TransactionHistoryResponse getAllTransactionHistory(int page, int size, String transactionType) {
+        // Adjust page number to be zero-based for Spring Data
+        int adjustedPage = page > 0 ? page - 1 : 0;
+        Pageable pageable = PageRequest.of(adjustedPage, size);
+
+        // Fetch all transactions with optional type filter
+        Page<Transaction> transactionsPage = transactionRepository.findAllTransactionsByType(transactionType, pageable);
 
         // Convert transactions to DTOs
         List<TransactionResponse> transactionResponses = transactionsPage.getContent().stream()
@@ -369,6 +423,35 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Fetch transactions for all accounts of the current user
         Page<Transaction> transactionsPage = transactionRepository.findTransactionHistoryByUser(currentUser, pageable);
+
+        // Convert transactions to DTOs
+        List<TransactionResponse> transactionResponses = transactionsPage.getContent().stream()
+                .map(transactionMapper::toTransactionResponse)
+                .collect(Collectors.toList());
+
+        // Build response
+        return TransactionHistoryResponse.builder()
+                .accountNo(null) // null because it's across multiple accounts
+                .transactions(transactionResponses)
+                .page(page)
+                .size(size)
+                .totalPages(transactionsPage.getTotalPages())
+                .build();
+    }
+
+    // Method with transactionType parameter for filtering current user's transactions
+    @Override
+    public TransactionHistoryResponse getCurrentUserTransactionHistory(int page, int size, String transactionType) {
+        // Get the current authenticated user
+        User currentUser = currentUserUtil.getCurrentUser();
+
+        // Adjust page number to be zero-based for Spring Data
+        int adjustedPage = page > 0 ? page - 1 : 0;
+        Pageable pageable = PageRequest.of(adjustedPage, size);
+
+        // Fetch transactions for all accounts of the current user with optional type filter
+        Page<Transaction> transactionsPage = transactionRepository.findTransactionHistoryByUserAndType(
+                currentUser, transactionType, pageable);
 
         // Convert transactions to DTOs
         List<TransactionResponse> transactionResponses = transactionsPage.getContent().stream()

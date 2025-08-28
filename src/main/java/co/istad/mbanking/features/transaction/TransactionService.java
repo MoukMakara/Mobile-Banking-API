@@ -22,9 +22,18 @@ public interface TransactionService {
     // Get transaction history for a specific account
     TransactionHistoryResponse getTransactionHistoryByAccount(String actNo, int page, int size);
 
+    // Get transaction history for a specific account with filter by transaction type
+    TransactionHistoryResponse getTransactionHistoryByAccount(String actNo, int page, int size, String transactionType);
+
     // Get all transaction history (for admin/staff)
     TransactionHistoryResponse getAllTransactionHistory(int page, int size);
 
+    // Get all transaction history (for admin/staff) with filter by transaction type
+    TransactionHistoryResponse getAllTransactionHistory(int page, int size, String transactionType);
+
     // Get transaction history for the current authenticated user across all their accounts
     TransactionHistoryResponse getCurrentUserTransactionHistory(int page, int size);
+
+    // Get transaction history for the current authenticated user across all their accounts with filter by transaction type
+    TransactionHistoryResponse getCurrentUserTransactionHistory(int page, int size, String transactionType);
 }

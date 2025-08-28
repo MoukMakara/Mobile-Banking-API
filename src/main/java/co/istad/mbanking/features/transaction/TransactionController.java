@@ -96,9 +96,15 @@ public class TransactionController {
     public ResponseEntity<ApiResponse<TransactionHistoryResponse>> getTransactionHistoryByAccount(
             @PathVariable String actNo,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String transactionType) {
 
-        TransactionHistoryResponse response = transactionService.getTransactionHistoryByAccount(actNo, page, size);
+        TransactionHistoryResponse response;
+        if (transactionType != null && !transactionType.isEmpty()) {
+            response = transactionService.getTransactionHistoryByAccount(actNo, page, size, transactionType);
+        } else {
+            response = transactionService.getTransactionHistoryByAccount(actNo, page, size);
+        }
 
         ApiResponse<TransactionHistoryResponse> apiResponse = ApiResponse.<TransactionHistoryResponse>builder()
                 .success(true)
@@ -114,9 +120,15 @@ public class TransactionController {
     @GetMapping("/accounts/all-history")
     public ResponseEntity<ApiResponse<TransactionHistoryResponse>> getAllTransactionHistory(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String transactionType) {
 
-        TransactionHistoryResponse response = transactionService.getAllTransactionHistory(page, size);
+        TransactionHistoryResponse response;
+        if (transactionType != null && !transactionType.isEmpty()) {
+            response = transactionService.getAllTransactionHistory(page, size, transactionType);
+        } else {
+            response = transactionService.getAllTransactionHistory(page, size);
+        }
 
         ApiResponse<TransactionHistoryResponse> apiResponse = ApiResponse.<TransactionHistoryResponse>builder()
                 .success(true)
@@ -132,9 +144,15 @@ public class TransactionController {
     @GetMapping("/accounts/current-user-history")
     public ResponseEntity<ApiResponse<TransactionHistoryResponse>> getCurrentUserTransactionHistory(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String transactionType) {
 
-        TransactionHistoryResponse response = transactionService.getCurrentUserTransactionHistory(page, size);
+        TransactionHistoryResponse response;
+        if (transactionType != null && !transactionType.isEmpty()) {
+            response = transactionService.getCurrentUserTransactionHistory(page, size, transactionType);
+        } else {
+            response = transactionService.getCurrentUserTransactionHistory(page, size);
+        }
 
         ApiResponse<TransactionHistoryResponse> apiResponse = ApiResponse.<TransactionHistoryResponse>builder()
                 .success(true)
