@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Riverside Branch",
+    "address": "45 Sisowath Quay",
+    "city": "Phnom Penh",
+    "province": "Phnom Penh",
+    "latitude": 11.573292,
+    "longitude": 104.931621,
+    "phoneNumber": "+85523980012",
+    "email": "riverside@mbanking.co.istad.com",
+    "openTime": "09:00:00",
+    "closeTime": "18:00:00",
+    "workDays": "Monday-Saturday"
+  },
+  {
+    "name": "Angkor Branch",
+    "address": "78 Angkor Wat Road",
+    "city": "Siem Reap",
+    "province": "Siem Reap",
+    "latitude": 13.363275,
+    "longitude": 103.856432,
+    "phoneNumber": "+85563987655",
+    "email": "angkor@mbanking.co.istad.com",
+    "openTime": "08:30:00",
+    "closeTime": "17:30:00",
+    "workDays": "Monday-Friday"
+  },
+  {
+    "name": "Battambang Branch",
+    "address": "12 National Road 5",
+    "city": "Battambang",
+    "province": "Battambang",
+    "latitude": 13.102714,
+    "longitude": 103.198223,
+    "phoneNumber": "+85553987656",
+    "email": "battambang@mbanking.co.istad.com",
+    "openTime": "08:00:00",
+    "closeTime": "17:00:00",
+    "workDays": "Monday-Friday"
+  },
+  {
+    "name": "Kampot Branch",
+    "address": "23 Riverside Street",
+    "city": "Kampot",
+    "province": "Kampot",
+    "latitude": 10.610556,
+    "longitude": 104.181944,
+    "phoneNumber": "+85533987657",
+    "email": "kampot@mbanking.co.istad.com",
+    "openTime": "09:00:00",
+    "closeTime": "18:00:00",
+    "workDays": "Monday-Saturday"
+  },
+  {
+    "name": "Sihanoukville Branch",
+    "address": "88 Beach Road",
+    "city": "Sihanoukville",
+    "province": "Preah Sihanouk",
+    "latitude": 10.625478,
+    "longitude": 103.522141,
+    "phoneNumber": "+85534987658",
+    "email": "sihanoukville@mbanking.co.istad.com",
+    "openTime": "08:00:00",
+    "closeTime": "17:00:00",
+    "workDays": "Monday-Friday"
+  }
+]

@@ -47,4 +47,8 @@ public class Account {
     @OneToMany(mappedBy = "owner")
     private List<Transaction> transactionOfOwner;
 
+    @ManyToOne
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
+
 }

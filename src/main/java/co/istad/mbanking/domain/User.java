@@ -76,4 +76,8 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private List<Role> roles;
 
+    @ManyToOne
+    @JoinColumn(name = "preferred_branch_id")
+    private Branch preferredBranch;
+
 }
