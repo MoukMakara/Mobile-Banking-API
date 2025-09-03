@@ -27,8 +27,6 @@ public class SwaggerConfig {
     @Value("${mbanking.openapi.stage-url}")
     private String stageUrl;
 
-    @Value("${mbanking.openapi.prod-url}")
-    private String prodUrl;
 
     private SecurityScheme createAPIKeyScheme() {
         return new SecurityScheme().type(SecurityScheme.Type.HTTP)
@@ -61,9 +59,9 @@ public class SwaggerConfig {
         stageServer.setUrl(stageUrl);
         stageServer.setDescription("Server URL in Testing environment");
 
-        Server prodServer = new Server();
-        prodServer.setUrl(prodUrl);
-        prodServer.setDescription("Server URL in Production environment");
+//        Server prodServer = new Server();
+//        prodServer.setUrl(prodUrl);
+//        prodServer.setDescription("Server URL in Production environment");
 
         return new OpenAPI()
                 .addSecurityItem(new SecurityRequirement()
@@ -84,7 +82,7 @@ public class SwaggerConfig {
                                 .url("API license URL")
                         )
                 )
-                .servers(List.of(devServer, stageServer, prodServer))
+                .servers(List.of(devServer, stageServer))
                 // Add tags in the order you want them to appear
                 .tags(List.of(
                         new Tag().name("auth-controller").description("Authentication operations"),

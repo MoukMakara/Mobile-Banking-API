@@ -29,7 +29,7 @@ public class DataInit {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-//    @PostConstruct
+    @PostConstruct
     void init() {
         initCardTypeData();
         initAccountTypeData();
